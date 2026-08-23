@@ -2,12 +2,18 @@
 
 [English](README.md) | **简体中文**
 
+![Clip——框住，就能粘贴](docs/promo/wechat-cover.png)
+
+**[下载 Clip v0.1.0](https://github.com/jearthliu/clip/releases/download/v0.1.0/Clip-v0.1.0-macOS-universal.zip)** · [安装说明](#安装-github-release) · [反馈问题](https://github.com/jearthliu/clip/issues/new)
+
 Clip 是一款剪贴板优先的 macOS 截图工具，提供两个核心功能：
 
 - 自由框选任意矩形区域，完成后立即复制；
 - 在 macOS 能读取、且能通过常规滚动操作移动内容的任意 App 中进行滚动截图。
 
 Clip 完全在本机工作，并且不依赖特定 App。它不会上传截图，也不会为某些 App 编写专用适配器。
+
+> 框选，松开，粘贴。需要时出现，完成后离开。
 
 截图体验分为两种模式：
 

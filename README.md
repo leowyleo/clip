@@ -2,12 +2,18 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+![Clip — select, release, paste](docs/promo/wechat-cover.png)
+
+**[Download Clip v0.1.0](https://github.com/jearthliu/clip/releases/download/v0.1.0/Clip-v0.1.0-macOS-universal.zip)** · [Install guide](#install-a-github-release) · [Report an issue](https://github.com/jearthliu/clip/issues/new)
+
 Clip is a clipboard-first screenshot utility for macOS. It has two primary actions:
 
 - capture any rectangular screen region and copy it immediately;
 - capture a scrolling region in any app that macOS can see and normal scroll input can move.
 
 The app is local-only and app-agnostic. It does not upload captures or use per-app adapters.
+
+> Select. Release. Paste. Clip stays out of the way until you need it.
 
 The capture experience has two modes:
 
