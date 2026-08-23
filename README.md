@@ -1,5 +1,7 @@
 # Clip
 
+**English** | [简体中文](README.zh-CN.md)
+
 Clip is a clipboard-first screenshot utility for macOS. It has two primary actions:
 
 - capture any rectangular screen region and copy it immediately;
