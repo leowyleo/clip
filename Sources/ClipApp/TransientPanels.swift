@@ -1,4 +1,5 @@
 import AppKit
+import ClipCore
 
 private final class TransientPanel: NSPanel {
     override var canBecomeKey: Bool { false }
@@ -24,7 +25,9 @@ private final class TransientPanel: NSPanel {
 final class CaptureSuccessToastController: NSObject {
     private let panel: TransientPanel
     private let iconView = NSImageView()
-    private let messageLabel = NSTextField(labelWithString: "已复制")
+    private let messageLabel = NSTextField(
+        labelWithString: ClipLocalization.text("Copied", "已复制")
+    )
     private var hideTimer: Timer?
     private var transitionGeneration = 0
 
@@ -39,7 +42,8 @@ final class CaptureSuccessToastController: NSObject {
         configurePanel()
     }
 
-    func show(message: String = "已复制") {
+    func show(message: String? = nil) {
+        let message = message ?? ClipLocalization.text("Copied", "已复制")
         messageLabel.stringValue = message
         iconView.setAccessibilityLabel(message)
         let messageWidth = ceil(messageLabel.intrinsicContentSize.width)
@@ -104,7 +108,7 @@ final class CaptureSuccessToastController: NSObject {
 
         iconView.image = NSImage(
             systemSymbolName: "checkmark.circle.fill",
-            accessibilityDescription: "已复制"
+            accessibilityDescription: ClipLocalization.text("Copied", "已复制")
         )
         iconView.contentTintColor = .systemGreen
         iconView.translatesAutoresizingMaskIntoConstraints = false
@@ -169,7 +173,11 @@ final class CaptureProgressHUDController: NSObject {
     }
 
     func show(near selection: CGRect) {
-        finishButton.title = "完成"
+        finishButton.title = ClipLocalization.text("Done", "完成")
+        finishButton.setAccessibilityLabel(
+            ClipLocalization.text("Finish scrolling capture", "完成滚动截图")
+        )
+        panel.setContentSize(NSSize(width: 92, height: 44))
         finishButton.isEnabled = true
         installKeyMonitors()
         positionPanel(near: selection)
@@ -186,7 +194,8 @@ final class CaptureProgressHUDController: NSObject {
     }
 
     func showProcessing() {
-        finishButton.title = "正在完成…"
+        finishButton.title = ClipLocalization.text("Finishing…", "正在完成…")
+        panel.setContentSize(NSSize(width: 124, height: 44))
         finishButton.isEnabled = false
     }
 
@@ -224,12 +233,14 @@ final class CaptureProgressHUDController: NSObject {
         effect.translatesAutoresizingMaskIntoConstraints = false
 
         finishButton.translatesAutoresizingMaskIntoConstraints = false
-        finishButton.title = "完成"
+        finishButton.title = ClipLocalization.text("Done", "完成")
         finishButton.bezelStyle = .recessed
         finishButton.font = .systemFont(ofSize: 13, weight: .semibold)
         finishButton.target = self
         finishButton.action = #selector(finish)
-        finishButton.setAccessibilityLabel("完成滚动截图")
+        finishButton.setAccessibilityLabel(
+            ClipLocalization.text("Finish scrolling capture", "完成滚动截图")
+        )
 
         guard let contentView = panel.contentView else { return }
         contentView.addSubview(effect)

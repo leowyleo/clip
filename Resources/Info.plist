@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key>
-    <string>zh_CN</string>
+    <string>en</string>
     <key>CFBundleDisplayName</key>
     <string>Clip</string>
     <key>CFBundleExecutable</key>
@@ -27,7 +27,7 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSScreenCaptureUsageDescription</key>
-    <string>Clip 只读取您框选的屏幕内容，所有处理均在本机完成，不保存视频。</string>
+    <string>Clip reads only the screen area you select. All processing stays on this Mac, and no video is saved.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
 </dict>

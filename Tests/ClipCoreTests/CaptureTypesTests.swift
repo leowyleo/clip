@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import Testing
 @testable import ClipCore
 
@@ -25,4 +26,24 @@ import Testing
     #expect(messages.allSatisfy { !$0.contains("Caches") })
     #expect(messages.allSatisfy { !$0.contains("分片") })
     #expect(messages.allSatisfy { !$0.contains("置信度") })
+}
+
+@Test func languagePreferenceDefaultsToEnglishAndPersistsChinese() {
+    let suiteName = "ClipCoreLanguageTests.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    #expect(ClipLanguagePreferences.language(in: defaults) == .english)
+    #expect(
+        ClipLocalization.text("Copied", "已复制", language: .english) == "Copied"
+    )
+
+    ClipLanguagePreferences.setLanguage(.simplifiedChinese, in: defaults)
+    #expect(ClipLanguagePreferences.language(in: defaults) == .simplifiedChinese)
+    #expect(
+        ClipLocalization.text("Copied", "已复制", language: .simplifiedChinese) == "已复制"
+    )
+
+    defaults.set("future-language", forKey: ClipLanguagePreferences.languageKey)
+    #expect(ClipLanguagePreferences.language(in: defaults) == .english)
 }

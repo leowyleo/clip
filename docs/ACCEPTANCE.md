@@ -2,6 +2,12 @@
 
 Completion is a user-visible result, not a successful build alone.
 
+## Language
+
+- A fresh installation starts in English regardless of the macOS system language.
+- Settings offers English and Simplified Chinese without restarting Clip.
+- Changing the language updates the menu bar menu immediately and all subsequently presented capture controls, editor labels, permission guidance, success feedback, and errors use the selected language.
+
 ## Region capture
 
 - The shortcut can be invoked while another app is focused.
@@ -21,7 +27,7 @@ Completion is a user-visible result, not a successful build alone.
 - Plain-line and arrow-line tools preserve the drag endpoints; only the arrow tool draws an arrowhead.
 - Mosaic strokes conceal the source pixels under the brush path.
 - Text notes and rectangle/ellipse marks appear at the user-selected coordinates; inline text shows only the caret and text over the source pixels, with no panel, fill, border, or rounded container. It focuses immediately, grows with text, commits in place on Return, and exits the text tool.
-- OCR recognizes the untouched selected pixels locally, copies readable text, closes the editor, and shows “文字 OCR 复制成功”.
+- OCR recognizes the untouched selected pixels locally, copies readable text, closes the editor, and shows “OCR text copied” or “文字 OCR 复制成功” in the selected language.
 - OCR success does not run the image clipboard handoff, so recognized text remains on the clipboard.
 - Download writes a uniquely named PNG to Downloads without closing the editor or replacing the clipboard.
 - Command-Z removes one annotation action; Escape cancels; Done copies one annotated PNG.

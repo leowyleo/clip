@@ -1,4 +1,5 @@
 import AppKit
+import ClipCore
 import CoreImage
 import ImageIO
 import UniformTypeIdentifiers
@@ -584,7 +585,7 @@ final class AnnotationEditorController: NSObject,
         )
 
         let field = NSTextField(frame: CGRect(x: x, y: y, width: width, height: 30))
-        field.placeholderString = "输入文字"
+        field.placeholderString = ClipLocalization.text("Type a note", "输入文字")
         field.font = .systemFont(ofSize: 18, weight: .semibold)
         field.textColor = .systemRed
         field.backgroundColor = .clear
@@ -660,43 +661,43 @@ final class AnnotationEditorController: NSObject,
         let mosaic = makeToolButton(
             tool: .mosaic,
             symbol: "square.grid.3x3.fill",
-            label: "马赛克画笔"
+            label: ClipLocalization.text("Mosaic brush", "马赛克画笔")
         )
         let text = makeToolButton(
             tool: .text,
             symbol: "textformat",
-            label: "文字备注"
+            label: ClipLocalization.text("Text note", "文字备注")
         )
         text.image = makeTextToolImage()
         let rectangle = makeToolButton(
             tool: .rectangle,
             symbol: "rectangle",
-            label: "矩形标记"
+            label: ClipLocalization.text("Rectangle", "矩形标记")
         )
         let ellipse = makeToolButton(
             tool: .ellipse,
             symbol: "circle",
-            label: "圆形标记"
+            label: ClipLocalization.text("Ellipse", "圆形标记")
         )
         let line = makeToolButton(
             tool: .line,
             symbol: "line.diagonal",
-            label: "无箭头连线"
+            label: ClipLocalization.text("Line", "无箭头连线")
         )
         let arrow = makeToolButton(
             tool: .arrow,
             symbol: "arrow.up.right",
-            label: "箭头连线"
+            label: ClipLocalization.text("Arrow", "箭头连线")
         )
         let ocr = makeActionButton(
             symbol: "text.viewfinder",
-            label: "识别文字并复制",
+            label: ClipLocalization.text("Recognize and copy text", "识别文字并复制"),
             action: #selector(runOCR)
         )
         ocrButton = ocr
         let download = makeActionButton(
             symbol: "arrow.down.to.line",
-            label: "保存到下载",
+            label: ClipLocalization.text("Save to Downloads", "保存到下载"),
             action: #selector(downloadCapture)
         )
         downloadButton = download
@@ -709,7 +710,7 @@ final class AnnotationEditorController: NSObject,
 
         let undo = makeActionButton(
             symbol: "arrow.uturn.backward",
-            label: "撤销",
+            label: ClipLocalization.text("Undo", "撤销"),
             action: #selector(undo)
         )
         let status = NSTextField(labelWithString: "")
@@ -722,12 +723,12 @@ final class AnnotationEditorController: NSObject,
 
         let cancel = makeActionButton(
             symbol: "xmark",
-            label: "取消",
+            label: ClipLocalization.text("Cancel", "取消"),
             action: #selector(cancelFromToolbar)
         )
         let done = makeActionButton(
             symbol: "checkmark",
-            label: "完成并复制截图",
+            label: ClipLocalization.text("Finish and copy capture", "完成并复制截图"),
             action: #selector(complete)
         )
         done.bezelStyle = .rounded
@@ -833,7 +834,7 @@ final class AnnotationEditorController: NSObject,
         )
         image.unlockFocus()
         image.isTemplate = true
-        image.accessibilityDescription = "文字备注"
+        image.accessibilityDescription = ClipLocalization.text("Text note", "文字备注")
         return image
     }
 
@@ -849,7 +850,7 @@ final class AnnotationEditorController: NSObject,
         let image = canvas.sourceImage()
 
         ocrButton?.isEnabled = false
-        showStatus("识别中…", hidesAutomatically: false)
+        showStatus(ClipLocalization.text("Recognizing…", "识别中…"), hidesAutomatically: false)
         let sendableImage = SendableAnnotationImage(value: image)
         ocrTask = Task { [weak self] in
             do {
@@ -857,7 +858,7 @@ final class AnnotationEditorController: NSObject,
                 try Task.checkCancellation()
                 guard let self, self.isPresenting else { return }
                 if text.isEmpty {
-                    self.showStatus("未识别到文字")
+                    self.showStatus(ClipLocalization.text("No text found", "未识别到文字"))
                 } else {
                     let pasteboard = NSPasteboard.general
                     pasteboard.clearContents()
@@ -867,13 +868,13 @@ final class AnnotationEditorController: NSObject,
                         handler?()
                         return
                     } else {
-                        self.showStatus("复制失败")
+                        self.showStatus(ClipLocalization.text("Copy failed", "复制失败"))
                     }
                 }
             } catch is CancellationError {
                 // Closing the editor cancels OCR without additional UI.
             } catch {
-                self?.showStatus("无法识别")
+                self?.showStatus(ClipLocalization.text("Recognition failed", "无法识别"))
             }
             self?.ocrButton?.isEnabled = true
             self?.ocrTask = nil
@@ -884,23 +885,23 @@ final class AnnotationEditorController: NSObject,
         guard downloadTask == nil else { return }
         commitInlineText()
         guard let image = canvas?.renderedImage() else {
-            showStatus("无法保存")
+            showStatus(ClipLocalization.text("Could not save", "无法保存"))
             return
         }
 
         downloadButton?.isEnabled = false
-        showStatus("保存中…", hidesAutomatically: false)
+        showStatus(ClipLocalization.text("Saving…", "保存中…"), hidesAutomatically: false)
         let sendableImage = SendableAnnotationImage(value: image)
         downloadTask = Task { [weak self] in
             do {
                 _ = try await CaptureDownloadWriter.write(sendableImage.value)
                 try Task.checkCancellation()
                 guard let self, self.isPresenting else { return }
-                self.showStatus("已保存到下载")
+                self.showStatus(ClipLocalization.text("Saved to Downloads", "已保存到下载"))
             } catch is CancellationError {
                 // Closing the editor cancels the download feedback.
             } catch {
-                self?.showStatus("无法保存")
+                self?.showStatus(ClipLocalization.text("Could not save", "无法保存"))
             }
             self?.downloadButton?.isEnabled = true
             self?.downloadTask = nil
@@ -910,7 +911,7 @@ final class AnnotationEditorController: NSObject,
     @objc private func complete() {
         commitInlineText()
         guard let image = canvas?.renderedImage() else {
-            showStatus("无法完成")
+            showStatus(ClipLocalization.text("Could not finish", "无法完成"))
             return
         }
         let handler = onComplete
@@ -1131,12 +1132,14 @@ private final class AnnotationToolbarPanel: NSPanel {
 enum OCRTextRecognizer {
     static func recognize(_ image: CGImage) async throws -> String {
         let sendableImage = SendableAnnotationImage(value: image)
+        let preferredLanguages = ClipLanguagePreferences.language == .simplifiedChinese
+            ? ["zh-Hans", "zh-Hant", "en-US"]
+            : ["en-US", "zh-Hans", "zh-Hant"]
         return try await Task.detached(priority: .userInitiated) {
             let request = VNRecognizeTextRequest()
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
             request.automaticallyDetectsLanguage = true
-            let preferredLanguages = ["zh-Hans", "zh-Hant", "en-US"]
             let supportedLanguages = try request.supportedRecognitionLanguages()
             request.recognitionLanguages = preferredLanguages.filter {
                 supportedLanguages.contains($0)

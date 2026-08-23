@@ -1,0 +1,54 @@
+import Foundation
+
+public enum ClipLanguage: String, CaseIterable, Sendable {
+    case english
+    case simplifiedChinese
+}
+
+public extension Notification.Name {
+    static let clipLanguageDidChange = Notification.Name("cc.clip.mac.languageChanged")
+}
+
+public enum ClipLanguagePreferences {
+    public static let languageKey = "cc.clip.mac.language"
+
+    public static var language: ClipLanguage {
+        get { language(in: .standard) }
+        set {
+            let previous = language(in: .standard)
+            setLanguage(newValue, in: .standard)
+            guard previous != newValue else { return }
+            NotificationCenter.default.post(name: .clipLanguageDidChange, object: nil)
+        }
+    }
+
+    public static func language(in defaults: UserDefaults) -> ClipLanguage {
+        guard let stored = defaults.string(forKey: languageKey),
+              let language = ClipLanguage(rawValue: stored) else {
+            return .english
+        }
+        return language
+    }
+
+    public static func setLanguage(
+        _ language: ClipLanguage,
+        in defaults: UserDefaults
+    ) {
+        defaults.set(language.rawValue, forKey: languageKey)
+    }
+}
+
+public enum ClipLocalization {
+    public static func text(
+        _ english: String,
+        _ simplifiedChinese: String,
+        language: ClipLanguage = ClipLanguagePreferences.language
+    ) -> String {
+        switch language {
+        case .english:
+            english
+        case .simplifiedChinese:
+            simplifiedChinese
+        }
+    }
+}

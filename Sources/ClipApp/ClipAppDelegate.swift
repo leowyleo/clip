@@ -32,6 +32,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var hotKeyManager: GlobalHotKeyManager?
     private var hotKeyChangeObserver: NSObjectProtocol?
+    private var languageChangeObserver: NSObjectProtocol?
     private var pendingMode: CaptureMode?
 
     override init() {
@@ -54,6 +55,15 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
                 self?.reloadHotKeys()
             }
         }
+        languageChangeObserver = NotificationCenter.default.addObserver(
+            forName: .clipLanguageDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.reloadLocalizedInterface()
+            }
+        }
         performStartupActionIfPresent()
     }
 
@@ -63,6 +73,9 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         annotationEditor.cancel()
         if let hotKeyChangeObserver {
             NotificationCenter.default.removeObserver(hotKeyChangeObserver)
+        }
+        if let languageChangeObserver {
+            NotificationCenter.default.removeObserver(languageChangeObserver)
         }
     }
 
@@ -105,7 +118,9 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
 
     func showOCRCompletion() {
         progressController.hide()
-        successController.show(message: "文字 OCR 复制成功")
+        successController.show(
+            message: ClipLocalization.text("OCR text copied", "文字 OCR 复制成功")
+        )
     }
 
     func editCapture(
@@ -148,12 +163,12 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
             ?? error.localizedDescription
         let alert = NSAlert()
         alert.alertStyle = .informational
-        alert.messageText = "截图未完成"
+        alert.messageText = ClipLocalization.text("Capture Not Completed", "截图未完成")
         alert.informativeText = message
         if retryMode != nil {
-            alert.addButton(withTitle: "重试")
+            alert.addButton(withTitle: ClipLocalization.text("Try Again", "重试"))
         }
-        alert.addButton(withTitle: "好")
+        alert.addButton(withTitle: ClipLocalization.text("OK", "好"))
         let response = runAlertRestoringFocus(alert)
         guard response == .alertFirstButtonReturn, let retryMode else { return }
         DispatchQueue.main.async { [weak self] in
@@ -168,11 +183,11 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 15, weight: .medium)
         button.image = NSImage(
             systemSymbolName: "viewfinder",
-            accessibilityDescription: "Clip 截图"
+            accessibilityDescription: ClipLocalization.text("Clip Capture", "Clip 截图")
         )?.withSymbolConfiguration(symbolConfiguration)
         button.imagePosition = .imageOnly
         button.toolTip = "Clip"
-        button.setAccessibilityLabel("Clip 截图菜单")
+        button.setAccessibilityLabel(ClipLocalization.text("Clip capture menu", "Clip 截图菜单"))
         item.menu = makeMenu()
         statusItem = item
     }
@@ -182,7 +197,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         menu.autoenablesItems = false
 
         let region = NSMenuItem(
-            title: "区域截图",
+            title: ClipLocalization.text("Region Capture", "区域截图"),
             action: #selector(captureRegionFromMenu),
             keyEquivalent: HotKeyPreferences.region.appKitKeyEquivalent ?? ""
         )
@@ -192,7 +207,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(region)
 
         let scrolling = NSMenuItem(
-            title: "滚动截图",
+            title: ClipLocalization.text("Scrolling Capture", "滚动截图"),
             action: #selector(captureScrollingFromMenu),
             keyEquivalent: HotKeyPreferences.scrolling.appKitKeyEquivalent ?? ""
         )
@@ -204,7 +219,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let settings = NSMenuItem(
-            title: "设置…",
+            title: ClipLocalization.text("Settings…", "设置…"),
             action: #selector(showSettings),
             keyEquivalent: ","
         )
@@ -215,7 +230,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "退出 Clip",
+            title: ClipLocalization.text("Quit Clip", "退出 Clip"),
             action: #selector(quit),
             keyEquivalent: "q"
         )
@@ -239,8 +254,14 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
             hotKeyManager = manager
         } catch {
             presentMessage(
-                title: "无法注册快捷键",
-                message: "快捷键可能正被其他应用使用。仍可从菜单栏启动截图。"
+                title: ClipLocalization.text(
+                    "Shortcuts Could Not Be Registered",
+                    "无法注册快捷键"
+                ),
+                message: ClipLocalization.text(
+                    "Another app may be using a shortcut. You can still start a capture from the menu bar.",
+                    "快捷键可能正被其他应用使用。仍可从菜单栏启动截图。"
+                )
             )
         }
     }
@@ -248,6 +269,13 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
     private func reloadHotKeys() {
         hotKeyManager?.unregisterAll()
         configureHotKeys()
+        statusItem?.menu = makeMenu()
+    }
+
+    private func reloadLocalizedInterface() {
+        statusItem?.button?.setAccessibilityLabel(
+            ClipLocalization.text("Clip capture menu", "Clip 截图菜单")
+        )
         statusItem?.menu = makeMenu()
     }
 
@@ -318,13 +346,25 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         let region = CaptureRegion(rect: rect)
         guard region.isUsable else {
             dismissSelection()
-            presentMessage(title: "选区太小", message: "请框选更大的截图区域。")
+            presentMessage(
+                title: ClipLocalization.text("Selection Too Small", "选区太小"),
+                message: ClipLocalization.text(
+                    "Select a larger capture area.",
+                    "请框选更大的截图区域。"
+                )
+            )
             return
         }
 
         guard let handler = onCaptureRequested else {
             dismissSelection()
-            presentMessage(title: "截图不可用", message: "请重新启动 Clip 后再试。")
+            presentMessage(
+                title: ClipLocalization.text("Capture Unavailable", "截图不可用"),
+                message: ClipLocalization.text(
+                    "Restart Clip and try again.",
+                    "请重新启动 Clip 后再试。"
+                )
+            )
             return
         }
 
@@ -344,11 +384,23 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
     private func requestScreenRecordingPermission() {
         let granted = permissionGuide.requestScreenRecordingAccess()
         if granted {
-            presentMessage(title: "权限已开启", message: "请再次启动截图。")
+            presentMessage(
+                title: ClipLocalization.text("Permission Enabled", "权限已开启"),
+                message: ClipLocalization.text(
+                    "Start the capture again.",
+                    "请再次启动截图。"
+                )
+            )
         } else {
             presentPermissionAlert(
-                title: "需要屏幕读取权限",
-                message: "请在系统设置的“屏幕与系统音频录制”中允许 Clip。Clip 只读取选区像素，所有处理均在本机完成，不保存视频。",
+                title: ClipLocalization.text(
+                    "Screen Capture Permission Required",
+                    "需要屏幕读取权限"
+                ),
+                message: ClipLocalization.text(
+                    "Allow Clip in System Settings under Screen & System Audio Recording. Clip reads only the selected pixels, processes everything locally, and never saves video.",
+                    "请在系统设置的“屏幕与系统音频录制”中允许 Clip。Clip 只读取选区像素，所有处理均在本机完成，不保存视频。"
+                ),
                 permission: .screenRecording
             )
         }
@@ -363,8 +415,10 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         alert.alertStyle = .informational
         alert.messageText = title
         alert.informativeText = message
-        alert.addButton(withTitle: "打开系统设置")
-        alert.addButton(withTitle: "稍后")
+        alert.addButton(
+            withTitle: ClipLocalization.text("Open System Settings", "打开系统设置")
+        )
+        alert.addButton(withTitle: ClipLocalization.text("Later", "稍后"))
         let response = runAlertRestoringFocus(alert, restoreFocus: false)
 
         if response == .alertFirstButtonReturn {
@@ -380,7 +434,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         alert.alertStyle = .informational
         alert.messageText = title
         alert.informativeText = message
-        alert.addButton(withTitle: "好")
+        alert.addButton(withTitle: ClipLocalization.text("OK", "好"))
         _ = runAlertRestoringFocus(alert)
     }
 

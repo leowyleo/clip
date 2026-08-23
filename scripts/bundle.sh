@@ -57,6 +57,8 @@ mkdir -p "$contents_dir/MacOS" "$contents_dir/Resources"
 cp "$executable_path" "$contents_dir/MacOS/Clip"
 cp "$project_dir/Resources/Info.plist" "$contents_dir/Info.plist"
 cp "$project_dir/Resources/AppIcon.icns" "$contents_dir/Resources/AppIcon.icns"
+cp -R "$project_dir/Resources/en.lproj" "$contents_dir/Resources/en.lproj"
+cp -R "$project_dir/Resources/zh-Hans.lproj" "$contents_dir/Resources/zh-Hans.lproj"
 
 if [ "$signing_identity" = "-" ]; then
   codesign --force --deep --sign - "$staged_bundle"

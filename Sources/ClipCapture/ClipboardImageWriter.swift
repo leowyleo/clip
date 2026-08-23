@@ -1,4 +1,5 @@
 import AppKit
+import ClipCore
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
@@ -11,11 +12,20 @@ public enum ClipboardImageError: LocalizedError, Equatable, Sendable {
     public var errorDescription: String? {
         switch self {
         case .invalidPNGData:
-            "提供的数据不是有效的 PNG 图片。"
+            ClipLocalization.text(
+                "The provided data is not a valid PNG image.",
+                "提供的数据不是有效的 PNG 图片。"
+            )
         case .encodingFailed:
-            "无法将截图编码为 PNG。"
+            ClipLocalization.text(
+                "The capture could not be encoded as PNG.",
+                "无法将截图编码为 PNG。"
+            )
         case .writeFailed:
-            "无法将截图写入剪贴板。"
+            ClipLocalization.text(
+                "The capture could not be written to the clipboard.",
+                "无法将截图写入剪贴板。"
+            )
         }
     }
 }

@@ -7,18 +7,29 @@ Clip is a clipboard-first screenshot utility for macOS. It has two primary actio
 
 The app is local-only and app-agnostic. It does not upload captures or use per-app adapters.
 
-Capture has two settings:
+The capture experience has two modes:
 
 - Minimal keeps the original select → copy behavior.
 - Advanced opens the completed region or scrolling image in place, keeps the surrounding screen dim without retaining a border, and adds opt-in mosaic, a focused `T` text tool, local OCR, rectangle/ellipse marks, plain and arrowed lines, and a one-click download action below the selection. A scrolling image stays at the selected width and can be browsed vertically without shrinking the long image.
 
 Minimal scrolling capture remains select → user scrolls → Done → copy. Advanced scrolling capture adds the same annotation step after the long image is composed.
 
+The interface uses English by default. Open **Settings → Language** to switch to Simplified Chinese; the menu, capture controls, editor, permission guidance, and errors change together.
+
 ## Requirements
 
 - macOS 13 Ventura or newer
 - Apple Silicon or Intel Mac
 - Swift 6.2 or newer
+
+## Install a GitHub release
+
+1. Download `Clip-v0.1.0-macOS-universal.zip` from the [Releases page](https://github.com/jearthliu/clip/releases).
+2. Unzip it and move `Clip.app` to Applications.
+3. Open Clip. If macOS blocks the first launch, open **System Settings → Privacy & Security**, scroll to Security, and click **Open Anyway** for Clip. Confirm **Open** when asked.
+4. Start a capture and allow Clip under **Screen & System Audio Recording** when macOS asks.
+
+The current community build is locally code-signed but is **not signed with an Apple Developer ID and has not been notarized by Apple**. Download it only from this repository's official release page. Do not disable Gatekeeper globally.
 
 The app and its universal Apple Silicon + Intel release bundle build with Apple Command Line Tools; a full Xcode installation is not required. The test runner bundled with the current Command Line Tools needs its framework paths supplied explicitly, so using a full Xcode installation is the shortest test path.
 
@@ -59,4 +70,4 @@ On first use, Clip asks for screen-read access. macOS places this control under 
 
 ## Product status
 
-This repository is under active development. See [PRODUCT.md](docs/PRODUCT.md) for the product contract and [ACCEPTANCE.md](docs/ACCEPTANCE.md) for the evidence required before a release can be called complete.
+This repository is under active development and released under the [MIT License](LICENSE). See [PRODUCT.md](docs/PRODUCT.md) for the product contract and [ACCEPTANCE.md](docs/ACCEPTANCE.md) for the evidence required before a release can be called complete.
