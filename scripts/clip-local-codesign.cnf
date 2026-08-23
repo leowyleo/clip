@@ -1,0 +1,16 @@
+[req]
+distinguished_name = subject
+prompt = no
+x509_extensions = codesign
+
+[subject]
+CN = Clip Local Development
+O = Clip Local Development
+OU = Local Code Signing
+
+[codesign]
+basicConstraints = critical,CA:FALSE
+keyUsage = critical,digitalSignature
+extendedKeyUsage = critical,codeSigning
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always

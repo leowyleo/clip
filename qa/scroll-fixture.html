@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clip Scroll QA</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { background: #11151d; color: #f7f8fb; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { margin: 0; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+      background: rgba(17, 21, 29, 0.97);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      letter-spacing: -0.02em;
+    }
+    header strong { font-size: 24px; }
+    header span { color: #aeb7c8; font-variant-numeric: tabular-nums; }
+    main { padding: 22px 26px 72px; }
+    section {
+      min-height: 310px;
+      margin: 0 0 18px;
+      padding: 34px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: grid;
+      align-content: space-between;
+      overflow: hidden;
+    }
+    section h2 { margin: 0; font-size: 38px; letter-spacing: -0.04em; }
+    section p { margin: 0; max-width: 620px; color: rgba(255, 255, 255, 0.82); font-size: 17px; line-height: 1.6; }
+    section code { justify-self: end; font-size: 14px; color: rgba(255, 255, 255, 0.72); }
+    section:nth-child(6n+1) { background: #1f5eff; }
+    section:nth-child(6n+2) { background: #7257ff; }
+    section:nth-child(6n+3) { background: #008b77; }
+    section:nth-child(6n+4) { background: #b64c2e; }
+    section:nth-child(6n+5) { background: #9150a5; }
+    section:nth-child(6n)   { background: #38617a; }
+  </style>
+</head>
+<body>
+  <header><strong>Clip Scroll QA</strong><span>固定标题只应出现一次</span></header>
+  <main>
+    <section><h2>01 · Start</h2><p>这是无敏感内容的本地验收页面。每个区块都有唯一颜色、编号和校验码。</p><code>CLIP-QA-01-A7</code></section>
+    <section><h2>02 · Frame</h2><p>区域截图应保留选区边界，并按 Retina 像素倍率进入系统剪贴板。</p><code>CLIP-QA-02-B3</code></section>
+    <section><h2>03 · Scroll</h2><p>滚动事件只作用于鼠标所在视口，不读取浏览器 DOM 或应用标识。</p><code>CLIP-QA-03-C9</code></section>
+    <section><h2>04 · Match</h2><p>相邻画面通过视觉重叠建立连续关系，不能可靠匹配时必须停止。</p><code>CLIP-QA-04-D1</code></section>
+    <section><h2>05 · Sticky</h2><p>页面顶部标题保持固定，但最终结果中只应出现一次。</p><code>CLIP-QA-05-E6</code></section>
+    <section><h2>06 · Continue</h2><p>单次重复帧不会提前结束；连续重复才用于确认页面底部。</p><code>CLIP-QA-06-F4</code></section>
+    <section><h2>07 · Local</h2><p>所有捕获、分析、拼接和编码都在本机完成，不依赖网络。</p><code>CLIP-QA-07-G8</code></section>
+    <section><h2>08 · Truth</h2><p>明确失败优于一张看起来完整、实际断裂或重复的图片。</p><code>CLIP-QA-08-H2</code></section>
+    <section><h2>09 · Clipboard</h2><p>成功结果直接进入剪贴板，文件保存只是用户主动选择的后续动作。</p><code>CLIP-QA-09-J5</code></section>
+    <section><h2>10 · Pause</h2><p>像素分析运行在独立执行器，暂停和取消不应被长计算阻塞。</p><code>CLIP-QA-10-K0</code></section>
+    <section><h2>11 · Limit</h2><p>输出尺寸和像素总量有明确上限，超过边界时保留原始分片。</p><code>CLIP-QA-11-L7</code></section>
+    <section><h2>12 · Any App</h2><p>能力边界来自公开的系统截图与滚动事件，而不是特定应用适配器。</p><code>CLIP-QA-12-M3</code></section>
+    <section><h2>13 · Verify</h2><p>最终图片需要经过尺寸、首尾标记和固定标题数量检查。</p><code>CLIP-QA-13-N9</code></section>
+    <section><h2>14 · End</h2><p>到达这里后，连续两个不变画面应确认滚动结束。</p><code>CLIP-QA-14-P1</code></section>
+  </main>
+</body>
+</html>
