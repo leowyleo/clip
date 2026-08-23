@@ -7,10 +7,14 @@ local_signing_identity="Clip Local Development"
 signing_identity=${SIGNING_IDENTITY:-}
 bundle_dir="$project_dir/dist/Clip.app"
 staging_dir=
+universal_executable=
 
 cleanup() {
   if [ -n "$staging_dir" ] && [ -d "$staging_dir" ]; then
     rm -rf "$staging_dir"
+  fi
+  if [ -n "$universal_executable" ] && [ -f "$universal_executable" ]; then
+    rm -f "$universal_executable"
   fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -30,20 +34,16 @@ fi
 
 cd "$project_dir"
 if [ "${UNIVERSAL:-0}" = "1" ]; then
-  case "$configuration" in
-    release) products_configuration=Release ;;
-    debug) products_configuration=Debug ;;
-    *)
-      echo "Unsupported CONFIGURATION for universal build: $configuration" >&2
-      exit 2
-      ;;
-  esac
-  swift build \
-    -c "$configuration" \
-    --product Clip \
-    --arch arm64 \
-    --arch x86_64
-  executable_path="$project_dir/.build/apple/Products/$products_configuration/Clip"
+  swift build -c "$configuration" --product Clip --arch arm64
+  swift build -c "$configuration" --product Clip --arch x86_64
+  arm_executable="$project_dir/.build/arm64-apple-macosx/$configuration/Clip"
+  intel_executable="$project_dir/.build/x86_64-apple-macosx/$configuration/Clip"
+  universal_executable=$(mktemp "$project_dir/.build/Clip.universal.XXXXXX")
+  lipo -create \
+    "$arm_executable" \
+    "$intel_executable" \
+    -output "$universal_executable"
+  executable_path="$universal_executable"
 else
   swift build -c "$configuration" --product Clip
   executable_path="$project_dir/.build/$configuration/Clip"

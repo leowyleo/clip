@@ -2,6 +2,23 @@ import CoreGraphics
 import Testing
 @testable import ClipCapture
 
+@Test func venturaDerivesRetinaScaleFromDisplayPixels() {
+    #expect(
+        ScreenCaptureDisplayScale.resolve(
+            pixelWidth: 5_120,
+            pixelHeight: 2_880,
+            frame: CGRect(x: 0, y: 0, width: 2_560, height: 1_440)
+        ) == 2
+    )
+    #expect(
+        ScreenCaptureDisplayScale.resolve(
+            pixelWidth: 1_920,
+            pixelHeight: 1_080,
+            frame: CGRect(x: 0, y: 0, width: 1_920, height: 1_080)
+        ) == 1
+    )
+}
+
 @Test func convertsAcrossDisplaysUsingMainDisplayAxis() {
     let converter = ScreenCoordinateConverter(mainDisplayHeight: 1080)
 

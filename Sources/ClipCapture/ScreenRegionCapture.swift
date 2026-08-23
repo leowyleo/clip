@@ -1,5 +1,7 @@
 import ClipCore
 import CoreGraphics
+import CoreImage
+import CoreMedia
 import Foundation
 import ScreenCaptureKit
 
@@ -158,6 +160,41 @@ enum DisplayCapturePlanner {
     }
 }
 
+enum ScreenCaptureDisplayScale {
+    static func resolve(
+        display: SCDisplay,
+        filter: SCContentFilter
+    ) -> CGFloat {
+        if #available(macOS 14.0, *) {
+            return CGFloat(filter.pointPixelScale)
+        }
+        return resolve(
+            pixelWidth: display.width,
+            pixelHeight: display.height,
+            frame: display.frame
+        )
+    }
+
+    static func resolve(
+        pixelWidth: Int,
+        pixelHeight: Int,
+        frame: CGRect
+    ) -> CGFloat {
+        guard frame.width.isFinite,
+              frame.height.isFinite,
+              frame.width > 0,
+              frame.height > 0,
+              pixelWidth > 0,
+              pixelHeight > 0 else {
+            return 1
+        }
+        let horizontal = CGFloat(pixelWidth) / frame.width
+        let vertical = CGFloat(pixelHeight) / frame.height
+        guard horizontal.isFinite, vertical.isFinite else { return 1 }
+        return max(1, min(horizontal, vertical))
+    }
+}
+
 public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
     static let maximumPixelDimension = 65_535
     static let maximumPixelCount = 67_108_864
@@ -177,7 +214,10 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             return CaptureDisplay(
                 id: display.displayID,
                 frame: display.frame,
-                scale: CGFloat(filter.pointPixelScale)
+                scale: ScreenCaptureDisplayScale.resolve(
+                    display: display,
+                    filter: filter
+                )
             )
         }
 
@@ -204,15 +244,17 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             configuration.width = Int(ceil(slice.destinationRect.width))
             configuration.height = Int(ceil(slice.destinationRect.height))
             configuration.scalesToFit = true
-            configuration.preservesAspectRatio = true
+            if #available(macOS 14.0, *) {
+                configuration.preservesAspectRatio = true
+            }
             configuration.showsCursor = false
             configuration.capturesAudio = false
 
             // Excluding Clip's own progress and status windows keeps the UI from
             // leaking into normal or scrolling captures.
             let filter = SCContentFilter(display: display, excludingWindows: ownWindows)
-            let image = try await SCScreenshotManager.captureImage(
-                contentFilter: filter,
+            let image = try await Self.captureImage(
+                filter: filter,
                 configuration: configuration
             )
             Self.draw(image, in: slice.destinationRect, canvasHeight: plan.pixelHeight, context: context)
@@ -222,6 +264,22 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             throw ClipError.captureFailed
         }
         return result
+    }
+
+    private static func captureImage(
+        filter: SCContentFilter,
+        configuration: SCStreamConfiguration
+    ) async throws -> CGImage {
+        if #available(macOS 14.0, *) {
+            return try await SCScreenshotManager.captureImage(
+                contentFilter: filter,
+                configuration: configuration
+            )
+        }
+        return try await LegacySingleFrameCapturer.capture(
+            filter: filter,
+            configuration: configuration
+        )
     }
 
     static func makeContext(width: Int, height: Int) -> CGContext? {
@@ -252,4 +310,120 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
         context.interpolationQuality = .high
         context.draw(image, in: drawingRect)
     }
+}
+
+private enum LegacySingleFrameCapturer {
+    static func capture(
+        filter: SCContentFilter,
+        configuration: SCStreamConfiguration
+    ) async throws -> CGImage {
+        let output = LegacySingleFrameOutput()
+        let stream = SCStream(
+            filter: filter,
+            configuration: configuration,
+            delegate: output
+        )
+        try stream.addStreamOutput(
+            output,
+            type: .screen,
+            sampleHandlerQueue: output.sampleQueue
+        )
+        let sendableStream = SendableLegacyStream(value: stream)
+
+        let image = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation {
+                (continuation: CheckedContinuation<CGImage, Error>) in
+                output.install(continuation)
+                stream.startCapture { error in
+                    if let error {
+                        output.finish(.failure(error))
+                    }
+                }
+            }
+        } onCancel: {
+            output.finish(.failure(CancellationError()))
+            Task.detached(priority: .utility) {
+                try? await sendableStream.value.stopCapture()
+            }
+        }
+
+        try? await stream.stopCapture()
+        return image
+    }
+}
+
+private final class LegacySingleFrameOutput: NSObject,
+    SCStreamOutput,
+    SCStreamDelegate,
+    @unchecked Sendable
+{
+    let sampleQueue = DispatchQueue(
+        label: "cc.clip.mac.single-frame",
+        qos: .userInitiated
+    )
+
+    private let lock = NSLock()
+    private let imageContext = CIContext(options: [.cacheIntermediates: false])
+    private var continuation: CheckedContinuation<CGImage, Error>?
+    private var pendingResult: Result<CGImage, Error>?
+
+    func install(_ continuation: CheckedContinuation<CGImage, Error>) {
+        lock.lock()
+        if let pendingResult {
+            self.pendingResult = nil
+            lock.unlock()
+            continuation.resume(with: pendingResult)
+            return
+        }
+        self.continuation = continuation
+        lock.unlock()
+    }
+
+    func stream(
+        _ stream: SCStream,
+        didOutputSampleBuffer sampleBuffer: CMSampleBuffer,
+        of outputType: SCStreamOutputType
+    ) {
+        guard outputType == .screen,
+              sampleBuffer.isValid,
+              let attachments = CMSampleBufferGetSampleAttachmentsArray(
+                sampleBuffer,
+                createIfNecessary: false
+              ) as? [[SCStreamFrameInfo: Any]],
+              let statusValue = attachments.first?[.status] as? Int,
+              SCFrameStatus(rawValue: statusValue) == .complete,
+              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            return
+        }
+
+        let image = CIImage(cvPixelBuffer: pixelBuffer)
+        guard let frame = imageContext.createCGImage(image, from: image.extent) else {
+            return
+        }
+        finish(.success(frame))
+    }
+
+    func stream(_ stream: SCStream, didStopWithError error: Error) {
+        finish(.failure(error))
+    }
+
+    func finish(_ result: Result<CGImage, Error>) {
+        lock.lock()
+        if let continuation {
+            self.continuation = nil
+            lock.unlock()
+            continuation.resume(with: result)
+            return
+        }
+        guard pendingResult == nil else {
+            lock.unlock()
+            return
+        }
+        pendingResult = result
+        lock.unlock()
+    }
+}
+
+private struct SendableLegacyStream: @unchecked Sendable {
+    let value: SCStream
 }

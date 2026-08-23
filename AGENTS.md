@@ -11,7 +11,7 @@
 
 ## Engineering
 
-- Target macOS 15 or newer with Swift 6 and AppKit/CoreGraphics.
+- Target macOS 13 or newer with Swift 6 and AppKit/CoreGraphics.
 - Keep capture, scrolling/stitching, and app UI in separate targets.
 - Avoid private APIs and avoid bypassing protected content.
 - The package must build and test with Command Line Tools; do not require a full Xcode installation.

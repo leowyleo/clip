@@ -52,6 +52,8 @@ Completion is a user-visible result, not a successful build alone.
 
 ## Packaging
 
+- The built app declares macOS 13.0 as its minimum system version.
+- The universal release executable contains both `arm64` and `x86_64` slices.
 - `scripts/test.sh` passes with both a full Xcode selection and a Command Line Tools-only selection.
 - `scripts/bundle.sh` produces `dist/Clip.app`.
 - `UNIVERSAL=1 scripts/bundle.sh` produces an arm64 + x86_64 executable when full Xcode is available.

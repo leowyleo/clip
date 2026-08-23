@@ -97,7 +97,10 @@ public struct ScreenCaptureKitRegionFrameStreamer: ScreenRegionFrameStreaming {
             $0.owningApplication?.processID == ownProcessID
         }
         let filter = SCContentFilter(display: display, excludingWindows: ownWindows)
-        let scale = CGFloat(filter.pointPixelScale)
+        let scale = ScreenCaptureDisplayScale.resolve(
+            display: display,
+            filter: filter
+        )
         guard scale.isFinite, scale > 0 else { throw ClipError.captureFailed }
 
         let sourceRect = CGRect(
@@ -127,11 +130,15 @@ public struct ScreenCaptureKitRegionFrameStreamer: ScreenRegionFrameStreaming {
         configuration.queueDepth = 8
         configuration.pixelFormat = kCVPixelFormatType_32BGRA
         configuration.scalesToFit = true
-        configuration.preservesAspectRatio = true
+        if #available(macOS 14.0, *) {
+            configuration.preservesAspectRatio = true
+        }
         configuration.showsCursor = false
-        configuration.showMouseClicks = false
         configuration.capturesAudio = false
-        configuration.captureMicrophone = false
+        if #available(macOS 15.0, *) {
+            configuration.showMouseClicks = false
+            configuration.captureMicrophone = false
+        }
 
         let (frames, continuation) = AsyncThrowingStream<CGImage, Error>.makeStream(
             // Preserve a bounded burst when image analysis briefly trails fast

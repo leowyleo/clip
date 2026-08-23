@@ -16,10 +16,11 @@ Minimal scrolling capture remains select → user scrolls → Done → copy. Adv
 
 ## Requirements
 
-- macOS 15 or newer
+- macOS 13 Ventura or newer
+- Apple Silicon or Intel Mac
 - Swift 6.2 or newer
 
-The app builds with Apple Command Line Tools; a full Xcode installation is not required for the release bundle. The test runner bundled with the current Command Line Tools needs its framework paths supplied explicitly, so using a full Xcode installation is the shortest test path.
+The app and its universal Apple Silicon + Intel release bundle build with Apple Command Line Tools; a full Xcode installation is not required. The test runner bundled with the current Command Line Tools needs its framework paths supplied explicitly, so using a full Xcode installation is the shortest test path.
 
 ## Build and test
 
@@ -36,11 +37,10 @@ open dist/Clip.app
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./scripts/test.sh
 ```
 
-`bundle.sh` creates a bundle for the current Mac by default. A full Xcode installation can produce a universal Apple Silicon + Intel bundle:
+`bundle.sh` creates a bundle for the current Mac by default. Build a universal Apple Silicon + Intel bundle with:
 
 ```sh
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
-  UNIVERSAL=1 ./scripts/bundle.sh
+UNIVERSAL=1 ./scripts/bundle.sh
 ```
 
 Run `scripts/create-local-signing-identity.sh` once before the first local bundle. It creates a code-signing-only identity named `Clip Local Development` in the current user's login keychain. `bundle.sh` then reuses that identity so rebuilt bundles keep a stable designated requirement and macOS privacy permissions remain attached to the same app identity. If the identity is missing, bundling fails instead of silently falling back to an unstable ad-hoc signature.

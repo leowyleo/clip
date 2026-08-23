@@ -97,3 +97,7 @@ Frames remain available until the operation succeeds or background diagnostics h
 ## Permission contract
 
 Both modes request screen-read permission just in time. macOS places this control in “Screen & System Audio Recording,” but Clip does not record or save video. Scrolling is controlled by the user, so Clip does not declare or require Accessibility permission and does not synthesize scroll input. Permission denial never exits the app and the UI supplies a direct path to the relevant System Settings pane.
+
+## System compatibility contract
+
+Clip supports macOS 13 Ventura and newer on Apple Silicon and Intel Macs. On macOS 14 and newer, region capture uses `SCScreenshotManager`; Ventura falls back to a short-lived in-memory `SCStream` and stops immediately after the first complete frame. Retina scale on Ventura is derived from the display pixel dimensions because `pointPixelScale` is unavailable there. Properties introduced in macOS 14 or 15 are guarded at runtime, and their older-system defaults preserve the same no-cursor, no-audio screenshot behavior. Neither compatibility path writes a video file.
