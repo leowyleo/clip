@@ -24,6 +24,24 @@ Clip 完全在本机工作，并且不依赖特定 App。它不会上传截图�
 
 界面默认使用英文。打开 **Settings → Language** 即可切换为简体中文；菜单、截图控件、编辑器、权限引导和错误提示会一起切换。
 
+## 实际界面
+
+### 自由框选与标注
+
+![Clip 高级截图与本地标注工具](docs/promo/screenshots/region-capture.png)
+
+选中区域保持明亮，选区外自动压暗。标注工具只在高级模式中出现，并且不会进入最终截图。
+
+### 自己滚动，随时完成
+
+![Clip 滚动截图的固定选区与完成按钮](docs/promo/screenshots/scrolling-capture.png)
+
+选区固定在桌面上，你继续操作原 App 并正常滚动。Clip 只记录经过选区的变化内容；截到需要的位置后，点击**完成**即可。
+
+### 默认保持简单
+
+![Clip 简体中文设置页](docs/promo/screenshots/settings.png)
+
 ## 系统要求
 
 - macOS 13 Ventura 或更高版本

@@ -13,6 +13,15 @@
 
 下载地址：https://github.com/jearthliu/clip/releases/tag/v0.1.0
 
+## 配图顺序
+
+1. 封面：`docs/promo/wechat-cover.png`
+2. 自由框选与高级编辑：`docs/promo/screenshots/region-capture.png`
+3. 滚动截图等待状态：`docs/promo/screenshots/scrolling-capture.png`
+4. 设置页：`docs/promo/screenshots/settings.png`
+
+V2EX、少数派和小众软件正文至少放第 2、3 张；小红书按 1、2、3、4 的顺序组成四图。第 3 张必须保留固定选区和“完成”按钮，让用户一眼看懂“自己滚动，Clip 负责记录”。
+
 ## V2EX
 
 ### 标题

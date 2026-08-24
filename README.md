@@ -24,6 +24,24 @@ Minimal scrolling capture remains select → user scrolls → Done → copy. Adv
 
 The interface uses English by default. Open **Settings → Language** to switch to Simplified Chinese; the menu, capture controls, editor, permission guidance, and errors change together.
 
+## See Clip in action
+
+### Select and annotate
+
+![Clip advanced capture with local annotation tools](docs/promo/screenshots/region-capture.png)
+
+The selected region stays bright while the rest of the screen is dimmed. Annotation tools appear only in Advanced mode and are never included in the captured image.
+
+### Scroll naturally, finish when you are ready
+
+![Clip scrolling capture with a fixed selection and Done button](docs/promo/screenshots/scrolling-capture.png)
+
+The selection stays fixed while you scroll the underlying app. Clip records only the changing pixels; click **Done** when the content you need has passed through the frame.
+
+### Keep the defaults simple
+
+![Clip settings in Simplified Chinese](docs/promo/screenshots/settings.png)
+
 ## Requirements
 
 - macOS 13 Ventura or newer
