@@ -9,15 +9,15 @@
 - 不需要账户、不上传截图、不依赖云端；
 - v0.1.0 尚未经过 Apple 公证，首次打开需在“系统设置 → 隐私与安全性”中选择“仍要打开”。
 
-项目地址：https://github.com/jearthliu/clip
+项目地址：https://github.com/leowyleo/clip
 
-下载地址：https://github.com/jearthliu/clip/releases/tag/v0.1.0
+下载地址：https://github.com/leowyleo/clip/releases/tag/v0.1.0
 
 ## 配图顺序
 
 1. 封面：`docs/promo/wechat-cover.png`
-2. 自由框选与高级编辑：`docs/promo/screenshots/region-capture.png`
-3. 滚动截图等待状态：`docs/promo/screenshots/scrolling-capture.png`
+2. 自由框选、编辑与粘贴动图：`docs/promo/screenshots/region-capture.gif`
+3. 手动滚动、完成与粘贴动图：`docs/promo/screenshots/scrolling-capture.gif`
 4. 设置页：`docs/promo/screenshots/settings.png`
 
 V2EX、少数派和小众软件正文至少放第 2、3 张；小红书按 1、2、3、4 的顺序组成四图。第 3 张必须保留固定选区和“完成”按钮，让用户一眼看懂“自己滚动，Clip 负责记录”。
@@ -43,9 +43,9 @@ V2EX、少数派和小众软件正文至少放第 2、3 张；小红书按 1、2
 
 当前版本支持 macOS 13+、Apple 芯片和 Intel Mac，免费并采用 MIT License 开源。因为尚未购买 Apple Developer Program，v0.1.0 还没有经过 Apple 公证，首次打开需要在“系统设置 → 隐私与安全性”中选择“仍要打开”。
 
-GitHub：https://github.com/jearthliu/clip
+GitHub：https://github.com/leowyleo/clip
 
-Release：https://github.com/jearthliu/clip/releases/tag/v0.1.0
+Release：https://github.com/leowyleo/clip/releases/tag/v0.1.0
 
 这是第一个公开版本。我尤其想知道：它在哪个 App 里不好用？滚动截图在哪类页面上容易失败？哪个动作仍然显得多余？这些反馈会直接决定下一版改什么，以及不应该加入什么。
 
@@ -77,7 +77,7 @@ Clip 默认使用极简模式，不主动展示多余工具。确实需要时，
 
 我选择把 Clip 免费开源，是因为不想继续闭门猜测“用户可能需要什么”。我更想知道，它是否真的能让截图少一个步骤，让工作少一次中断。
 
-项目与下载：https://github.com/jearthliu/clip
+项目与下载：https://github.com/leowyleo/clip
 
 当前 v0.1.0 尚未经过 Apple 公证。如果首次打开被 macOS 拦截，请前往“系统设置 → 隐私与安全性”，选择“仍要打开”。
 
@@ -93,9 +93,9 @@ Clip – 框住就能粘贴，支持手动滚动截图的 macOS 开源工具
 
 Clip 是一款免费开源、剪贴板优先的 macOS 截图工具。普通截图只需框选并松开，图片便会直接进入剪贴板；滚动截图则由用户正常滚动，Clip 在内存中记录变化并拼接成长图，不生成视频。它支持 macOS 13+、Apple 芯片与 Intel Mac，不需要账户，不上传图片，也不依赖特定 App。项目采用 MIT License，当前 v0.1.0 尚未经过 Apple 公证，首次启动需要在 macOS“隐私与安全性”中选择“仍要打开”。
 
-项目：https://github.com/jearthliu/clip
+项目：https://github.com/leowyleo/clip
 
-下载：https://github.com/jearthliu/clip/releases/tag/v0.1.0
+下载：https://github.com/leowyleo/clip/releases/tag/v0.1.0
 
 ## 小红书
 
@@ -139,7 +139,7 @@ Clip 是一个免费开源、完全在本机运行的 macOS 截图工具。普�
 
 支持 macOS 13+、Apple 芯片和 Intel Mac。
 
-项目与下载：https://github.com/jearthliu/clip
+项目与下载：https://github.com/leowyleo/clip
 
 ### 60 秒演示结构
 
@@ -185,7 +185,7 @@ It captures rectangular regions directly to the clipboard and also supports app-
 
 Clip is MIT licensed, runs locally, requires no account, and supports macOS 13+ on Apple Silicon and Intel Macs.
 
-Source and release: https://github.com/jearthliu/clip
+Source and release: https://github.com/leowyleo/clip
 
 ## Reddit r/macapps
 
@@ -201,6 +201,6 @@ Clip also supports scrolling capture without taking over the scroll interaction.
 
 The first release supports macOS 13+, Apple Silicon, and Intel Macs. It is free and MIT licensed. The current build is not Apple-notarized yet, so the release notes include the explicit first-launch steps.
 
-GitHub: https://github.com/jearthliu/clip
+GitHub: https://github.com/leowyleo/clip
 
 I would love feedback on apps or pages where scrolling capture struggles, and on anything that still feels like an unnecessary step.

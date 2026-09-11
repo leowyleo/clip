@@ -4,7 +4,7 @@
 
 ![Clip — select, release, paste](docs/promo/wechat-cover.png)
 
-**[Download Clip v0.1.0](https://github.com/jearthliu/clip/releases/download/v0.1.0/Clip-v0.1.0-macOS-universal.zip)** · [Install guide](#install-a-github-release) · [Report an issue](https://github.com/jearthliu/clip/issues/new)
+**[Download Clip v0.1.0](https://github.com/leowyleo/clip/releases/download/v0.1.0/Clip-v0.1.0-macOS-universal.dmg)** · [Install guide](#install-a-github-release) · [Report an issue](https://github.com/leowyleo/clip/issues/new)
 
 Clip is a clipboard-first screenshot utility for macOS. It has two primary actions:
 
@@ -28,13 +28,13 @@ The interface uses English by default. Open **Settings → Language** to switch 
 
 ### Select and annotate
 
-![Clip advanced capture with local annotation tools](docs/promo/screenshots/region-capture.png)
+![Clip free-selection capture and local annotation workflow](docs/promo/screenshots/region-capture.gif)
 
 The selected region stays bright while the rest of the screen is dimmed. Annotation tools appear only in Advanced mode and are never included in the captured image.
 
 ### Scroll naturally, finish when you are ready
 
-![Clip scrolling capture with a fixed selection and Done button](docs/promo/screenshots/scrolling-capture.png)
+![Clip user-controlled scrolling capture workflow](docs/promo/screenshots/scrolling-capture.gif)
 
 The selection stays fixed while you scroll the underlying app. Clip records only the changing pixels; click **Done** when the content you need has passed through the frame.
 
@@ -50,9 +50,9 @@ The selection stays fixed while you scroll the underlying app. Clip records only
 
 ## Install a GitHub release
 
-1. Download `Clip-v0.1.0-macOS-universal.zip` from the [Releases page](https://github.com/jearthliu/clip/releases).
-2. Unzip it and move `Clip.app` to Applications.
-3. Open Clip. If macOS blocks the first launch, open **System Settings → Privacy & Security**, scroll to Security, and click **Open Anyway** for Clip. Confirm **Open** when asked.
+1. Download `Clip-v0.1.0-macOS-universal.dmg` from the [Releases page](https://github.com/leowyleo/clip/releases).
+2. Double-click the DMG, then drag `Clip.app` to the **Applications** shortcut in the window.
+3. Eject **Install Clip** in Finder, then open Clip from Applications. If macOS blocks the first launch, open **System Settings → Privacy & Security**, scroll to Security, and click **Open Anyway** for Clip. Confirm **Open** when asked.
 4. Start a capture and allow Clip under **Screen & System Audio Recording** when macOS asks.
 
 The current community build is locally code-signed but is **not signed with an Apple Developer ID and has not been notarized by Apple**. Download it only from this repository's official release page. Do not disable Gatekeeper globally.
@@ -78,6 +78,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./scripts/test.sh
 
 ```sh
 UNIVERSAL=1 ./scripts/bundle.sh
+./scripts/package-dmg.sh
+open dist/Clip-v0.1.0-macOS-universal.dmg
 ```
 
 Run `scripts/create-local-signing-identity.sh` once before the first local bundle. It creates a code-signing-only identity named `Clip Local Development` in the current user's login keychain. `bundle.sh` then reuses that identity so rebuilt bundles keep a stable designated requirement and macOS privacy permissions remain attached to the same app identity. If the identity is missing, bundling fails instead of silently falling back to an unstable ad-hoc signature.

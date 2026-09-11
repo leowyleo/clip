@@ -4,7 +4,7 @@
 
 ![Clip——框住，就能粘贴](docs/promo/wechat-cover.png)
 
-**[下载 Clip v0.1.0](https://github.com/jearthliu/clip/releases/download/v0.1.0/Clip-v0.1.0-macOS-universal.zip)** · [安装说明](#安装-github-release) · [反馈问题](https://github.com/jearthliu/clip/issues/new)
+**[下载 Clip v0.1.0](https://github.com/leowyleo/clip/releases/download/v0.1.0/Clip-v0.1.0-macOS-universal.dmg)** · [安装说明](#安装-github-release) · [反馈问题](https://github.com/leowyleo/clip/issues/new)
 
 Clip 是一款剪贴板优先的 macOS 截图工具，提供两个核心功能：
 
@@ -28,13 +28,13 @@ Clip 完全在本机工作，并且不依赖特定 App。它不会上传截图�
 
 ### 自由框选与标注
 
-![Clip 高级截图与本地标注工具](docs/promo/screenshots/region-capture.png)
+![Clip 自由框选、编辑并粘贴的完整流程](docs/promo/screenshots/region-capture.gif)
 
 选中区域保持明亮，选区外自动压暗。标注工具只在高级模式中出现，并且不会进入最终截图。
 
 ### 自己滚动，随时完成
 
-![Clip 滚动截图的固定选区与完成按钮](docs/promo/screenshots/scrolling-capture.png)
+![Clip 手动滚动、完成并粘贴的完整流程](docs/promo/screenshots/scrolling-capture.gif)
 
 选区固定在桌面上，你继续操作原 App 并正常滚动。Clip 只记录经过选区的变化内容；截到需要的位置后，点击**完成**即可。
 
@@ -50,9 +50,9 @@ Clip 完全在本机工作，并且不依赖特定 App。它不会上传截图�
 
 ## 安装 GitHub Release
 
-1. 从 [Releases 页面](https://github.com/jearthliu/clip/releases)下载 `Clip-v0.1.0-macOS-universal.zip`。
-2. 解压后将 `Clip.app` 移到“应用程序”文件夹。
-3. 打开 Clip。如果 macOS 阻止首次启动，请前往 **系统设置 → 隐私与安全性**，滚动到“安全性”，找到 Clip 并点击**仍要打开**，然后确认打开。
+1. 从 [Releases 页面](https://github.com/leowyleo/clip/releases)下载 `Clip-v0.1.0-macOS-universal.dmg`。
+2. 双击打开 DMG，在窗口中将 `Clip.app` 拖到“应用程序”快捷方式。
+3. 在 Finder 中推出“Install Clip”，再从“应用程序”打开 Clip。如果 macOS 阻止首次启动，请前往 **系统设置 → 隐私与安全性**，滚动到“安全性”，找到 Clip 并点击**仍要打开**，然后确认打开。
 4. 启动一次截图；macOS 提示时，请允许 Clip 使用**屏幕与系统音频录制**权限。
 
 当前社区版本使用本地代码签名，但**没有使用 Apple Developer ID 签名，也没有通过 Apple 公证**。请只从本仓库的官方 Release 页面下载。不要全局关闭 Gatekeeper。
@@ -78,6 +78,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./scripts/test.sh
 
 ```sh
 UNIVERSAL=1 ./scripts/bundle.sh
+./scripts/package-dmg.sh
+open dist/Clip-v0.1.0-macOS-universal.dmg
 ```
 
 首次在本机打包前，请运行一次 `scripts/create-local-signing-identity.sh`。它会在当前用户的登录钥匙串中创建一个仅用于代码签名、名为 `Clip Local Development` 的本地身份。之后 `bundle.sh` 会持续复用该身份，使重新构建的安装包保持稳定的指定要求，让 macOS 隐私权限继续关联到同一 App 身份。如果找不到该身份，打包会明确失败，不会悄悄退回到不稳定的临时签名。

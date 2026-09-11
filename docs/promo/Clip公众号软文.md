@@ -20,7 +20,7 @@ Clip 最核心的体验只有三个动作：**框选、松开、粘贴。**
 
 操作路径：框选 → 松开 → 在微信中粘贴。
 
-![Clip 自由框选与高级编辑界面](screenshots/region-capture.png)
+![Clip 自由框选、编辑并粘贴的完整流程](screenshots/region-capture.gif)
 
 ## 滚动截图，也应该由你控制
 
@@ -32,7 +32,7 @@ Clip 只负责连续记录画面变化，并把内容拼成一张长图。它不
 
 操作路径：框选 → 手动滚动 → 点击对号 → 粘贴长图。
 
-![Clip 滚动截图：选区固定，用户继续滚动](screenshots/scrolling-capture.png)
+![Clip 滚动截图：选区固定，用户滚动并粘贴结果](screenshots/scrolling-capture.gif)
 
 ## 简单，但不简陋
 
@@ -51,9 +51,9 @@ Clip 默认使用极简模式，不主动展示多余工具。需要时，可以
 
 Clip 已经免费开源。我更想知道：它是否真的能让截图少一个步骤，让工作少一次中断。
 
-项目地址：https://github.com/jearthliu/clip
+项目地址：https://github.com/leowyleo/clip
 
-下载地址：https://github.com/jearthliu/clip/releases/tag/v0.1.0
+下载地址：https://github.com/leowyleo/clip/releases/tag/v0.1.0
 
 当前版本尚未经过 Apple 公证。如果首次打开被 macOS 拦截，请在“系统设置 → 隐私与安全性”中选择“仍要打开”。
 
