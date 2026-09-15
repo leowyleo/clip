@@ -31,7 +31,10 @@ public enum ClipboardImageError: LocalizedError, Equatable, Sendable {
 }
 
 public enum PNGImageEncoder {
-    public static func encode(_ image: CGImage) throws -> Data {
+    public static func encode(
+        _ image: CGImage,
+        pixelsPerPoint: CGFloat = 1
+    ) throws -> Data {
         let data = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(
             data,
@@ -41,11 +44,36 @@ public enum PNGImageEncoder {
         ) else {
             throw ClipboardImageError.encodingFailed
         }
-        CGImageDestinationAddImage(destination, image, nil)
+        let resolvedScale = pixelsPerPoint.isFinite && pixelsPerPoint > 0
+            ? pixelsPerPoint
+            : 1
+        let dpi = 72 * resolvedScale
+        let properties: [CFString: Any] = [
+            kCGImagePropertyDPIWidth: dpi,
+            kCGImagePropertyDPIHeight: dpi
+        ]
+        CGImageDestinationAddImage(destination, image, properties as CFDictionary)
         guard CGImageDestinationFinalize(destination) else {
             throw ClipboardImageError.encodingFailed
         }
         return data as Data
+    }
+}
+
+public enum CaptureImageResolution {
+    /// ScreenCaptureKit returns native pixels while selections are measured in
+    /// AppKit points. Rounding removes sub-point selection noise and recovers
+    /// the display's integral backing scale (1x or 2x).
+    public static func pixelsPerPoint(
+        pixelWidth: Int,
+        pointWidth: CGFloat
+    ) -> CGFloat {
+        guard pixelWidth > 0,
+              pointWidth.isFinite,
+              pointWidth > 0 else { return 1 }
+        let measured = CGFloat(pixelWidth) / pointWidth
+        guard measured.isFinite, measured > 0 else { return 1 }
+        return max(1, measured.rounded())
     }
 }
 

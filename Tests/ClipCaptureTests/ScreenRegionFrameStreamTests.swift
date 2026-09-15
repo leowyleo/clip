@@ -24,6 +24,24 @@ struct ScreenRegionFrameStreamTests {
         #expect(await probe.didStop)
     }
 
+    @Test func serviceAlignsFractionalSelectionEdgesBeforeStreaming() async throws {
+        let probe = StreamProbe()
+        let service = ScreenRegionFrameStreamService(
+            permission: StreamPermission(authorized: true),
+            streamer: ProbeStreamer(probe: probe),
+            coordinateConverter: ScreenCoordinateConverter(mainDisplayHeight: 1_000)
+        )
+        let region = CaptureRegion(
+            rect: CGRect(x: -40.2, y: 100.2, width: 320.6, height: 240.6)
+        )
+
+        let stream = try await service.stream(region: region, framesPerSecond: 30)
+        let request = await probe.request
+        await stream.stop()
+
+        #expect(request?.rect == CGRect(x: -40, y: 659, width: 320, height: 241))
+    }
+
     @Test func deniedPermissionNeverCreatesAStream() async {
         let probe = StreamProbe()
         let service = ScreenRegionFrameStreamService(

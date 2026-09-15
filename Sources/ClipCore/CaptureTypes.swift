@@ -53,10 +53,7 @@ public enum ClipError: LocalizedError, Equatable, Sendable {
                 "此内容受系统保护，无法截取。"
             )
         case .noScrollableContent:
-            ClipLocalization.text(
-                "No additional content was detected.",
-                "没有检测到更多内容。"
-            )
+            ScrollingCaptureFeedback.noMovementMessage()
         case .unstableContent:
             ClipLocalization.text(
                 "The content kept changing. No image was created.",

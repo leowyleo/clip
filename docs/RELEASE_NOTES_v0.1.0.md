@@ -13,9 +13,9 @@ Clip is a local, clipboard-first screenshot utility for macOS 13 and newer.
 
 ## Install
 
-1. Download `Clip-v0.1.0-macOS-universal.zip` from this release.
-2. Unzip it and move `Clip.app` to Applications.
-3. Open Clip. If macOS blocks the first launch, open **System Settings → Privacy & Security**, scroll to Security, and click **Open Anyway** for Clip. Confirm **Open** when asked.
+1. Download `Clip-v0.1.0-macOS-universal.dmg` from this release.
+2. Double-click the DMG, then drag `Clip.app` to the **Applications** shortcut in the window.
+3. Eject **Install Clip** in Finder, then open Clip from Applications. If macOS blocks the first launch, open **System Settings → Privacy & Security**, scroll to Security, and click **Open Anyway** for Clip. Confirm **Open** when asked.
 4. Start a capture and allow Clip under **Screen & System Audio Recording** when macOS asks.
 
 ## Important security note
@@ -24,4 +24,4 @@ This community preview is locally code-signed but is **not signed with an Apple 
 
 Clip processes captures locally. It does not upload screenshots, record video, or require an account.
 
-SHA-256: `3aee07c0fdcb5a9943d21a11a8e06aade33a533ef45af84c04968681120b9546`
+SHA-256: `5d2c5b5c94a26c853a2bc6621fe7ab0ee32dd1c25debafff4972a47593287425`

@@ -64,7 +64,7 @@ final class CaptureCoordinator {
             switch mode {
             case .region:
                 if CaptureExperiencePreferences.usesEditor(for: .region) {
-                    await captureRegion(
+                    await editLiveRegion(
                         region,
                         generation: generation,
                         dismissSelection: dismissSelection
@@ -80,6 +80,63 @@ final class CaptureCoordinator {
                     activatePassiveFrame: activatePassiveFrame,
                     dismissSelection: dismissSelection
                 )
+            }
+        }
+    }
+
+    private func editLiveRegion(
+        _ region: CaptureRegion,
+        generation: UInt64,
+        dismissSelection: @escaping () -> Void
+    ) async {
+        let capturedResolution = CaptureResolutionBox()
+        defer {
+            dismissSelection()
+            finishCaptureIfCurrent(generation)
+        }
+        do {
+            try ensureCurrent(generation)
+            guard let appDelegate else { throw CancellationError() }
+            let result = try await appDelegate.editLiveCapture(
+                over: region.rect,
+                capture: { [captureService] finalRect in
+                    let image = try await captureService.capture(
+                        region: CaptureRegion(rect: finalRect)
+                    )
+                    await capturedResolution.set(
+                        CaptureImageResolution.pixelsPerPoint(
+                            pixelWidth: image.width,
+                            pointWidth: finalRect.width
+                        )
+                    )
+                    return image
+                }
+            )
+            try ensureCurrent(generation)
+            switch result {
+            case .image(let image):
+                let pixelsPerPoint = await capturedResolution.value
+                    ?? CaptureImageResolution.pixelsPerPoint(
+                        pixelWidth: image.width,
+                        pointWidth: region.rect.width
+                    )
+                let pngData = try await encodePNG(
+                    image,
+                    pixelsPerPoint: pixelsPerPoint
+                )
+                try ensureCurrent(generation)
+                try clipboardWriter.write(pngData: pngData)
+                appDelegate.showCaptureCompletion()
+            case .ocrTextCopied:
+                appDelegate.showOCRCompletion()
+            }
+        } catch is CancellationError {
+            if isCurrent(generation) {
+                appDelegate?.hideCaptureProgress()
+            }
+        } catch {
+            if isCurrent(generation), !Task.isCancelled {
+                appDelegate?.presentCaptureError(error, retryMode: .region)
             }
         }
     }
@@ -119,37 +176,21 @@ final class CaptureCoordinator {
 
     private func captureRegion(
         _ region: CaptureRegion,
-        generation: UInt64,
-        dismissSelection: (() -> Void)? = nil
+        generation: UInt64
     ) async {
         defer {
-            dismissSelection?()
             finishCaptureIfCurrent(generation)
         }
         do {
             let image = try await captureService.capture(region: region)
             try ensureCurrent(generation)
-            let outputImage: CGImage
-            if CaptureExperiencePreferences.usesEditor(for: .region),
-               let appDelegate {
-                let result = try await appDelegate.editCapture(
-                    image,
-                    over: region.rect,
-                    replacingSelection: dismissSelection
+            let pngData = try await encodePNG(
+                image,
+                pixelsPerPoint: CaptureImageResolution.pixelsPerPoint(
+                    pixelWidth: image.width,
+                    pointWidth: region.rect.width
                 )
-                switch result {
-                case .image(let editedImage):
-                    outputImage = editedImage
-                case .ocrTextCopied:
-                    try ensureCurrent(generation)
-                    appDelegate.showOCRCompletion()
-                    return
-                }
-            } else {
-                outputImage = image
-            }
-            try ensureCurrent(generation)
-            let pngData = try await encodePNG(outputImage)
+            )
             try ensureCurrent(generation)
             try clipboardWriter.write(pngData: pngData)
             appDelegate?.showCaptureCompletion()
@@ -200,6 +241,10 @@ final class CaptureCoordinator {
             let scrollProcessor = try ContinuousScrollProcessor()
             processor = scrollProcessor
             _ = try await scrollProcessor.ingest(first)
+            let pixelsPerPoint = CaptureImageResolution.pixelsPerPoint(
+                pixelWidth: first.width,
+                pointWidth: region.rect.width
+            )
 
             activeSelectionDismiss = dismissSelection
             activeSelectionGeneration = generation
@@ -226,12 +271,16 @@ final class CaptureCoordinator {
 
                 let result = try await appDelegate.editCapture(
                     stitched.value,
-                    over: region.rect
+                    over: region.rect,
+                    replacingSelection: activeSelectionDismiss
                 )
                 switch result {
                 case .image(let editedImage):
                     try ensureCurrent(generation)
-                    let pngData = try await encodePNG(editedImage)
+                    let pngData = try await encodePNG(
+                        editedImage,
+                        pixelsPerPoint: pixelsPerPoint
+                    )
                     try ensureCurrent(generation)
                     try clipboardWriter.write(pngData: pngData)
                     appDelegate.showCaptureCompletion()
@@ -241,7 +290,9 @@ final class CaptureCoordinator {
                 }
             } else {
                 let completed = try await withProcessingDeadline {
-                    try await scrollProcessor.finalizeAndEncode()
+                    try await scrollProcessor.finalizeAndEncode(
+                        pixelsPerPoint: pixelsPerPoint
+                    )
                 }
                 try ensureCurrent(generation)
                 try clipboardWriter.write(pngData: completed.pngData)
@@ -352,10 +403,16 @@ final class CaptureCoordinator {
         }
     }
 
-    private func encodePNG(_ image: CGImage) async throws -> Data {
+    private func encodePNG(
+        _ image: CGImage,
+        pixelsPerPoint: CGFloat
+    ) async throws -> Data {
         let sendableImage = SendableCGImage(value: image)
         return try await withProcessingDeadline {
-            try PNGImageEncoder.encode(sendableImage.value)
+            try PNGImageEncoder.encode(
+                sendableImage.value,
+                pixelsPerPoint: pixelsPerPoint
+            )
         }
     }
 
@@ -392,10 +449,13 @@ private actor ContinuousScrollProcessor {
         try session.ingest(image)
     }
 
-    func finalizeAndEncode() throws -> ScrollCompletionOutput {
+    func finalizeAndEncode(pixelsPerPoint: CGFloat) throws -> ScrollCompletionOutput {
         let result = try session.finalize()
         return ScrollCompletionOutput(
-            pngData: try PNGImageEncoder.encode(result.image)
+            pngData: try PNGImageEncoder.encode(
+                result.image,
+                pixelsPerPoint: pixelsPerPoint
+            )
         )
     }
 
@@ -410,6 +470,14 @@ private actor ContinuousScrollProcessor {
 
 private struct SendableCGImage: @unchecked Sendable {
     let value: CGImage
+}
+
+private actor CaptureResolutionBox {
+    private(set) var value: CGFloat?
+
+    func set(_ value: CGFloat) {
+        self.value = value
+    }
 }
 
 private struct ScrollCompletionOutput: Sendable {

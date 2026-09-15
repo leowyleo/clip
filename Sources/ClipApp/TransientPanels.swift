@@ -17,7 +17,7 @@ private final class TransientPanel: NSPanel {
             backing: backingStoreType,
             defer: flag
         )
-        sharingType = .none
+        sharingType = .readOnly
     }
 }
 
@@ -156,6 +156,7 @@ final class CaptureProgressHUDController: NSObject {
     var onFinish: (() -> Void)?
 
     private let panel: TransientPanel
+    private let instructionLabel = NSTextField(labelWithString: "")
     private let finishButton = NSButton()
     private var transitionGeneration = 0
     private var localKeyMonitor: Any?
@@ -163,7 +164,7 @@ final class CaptureProgressHUDController: NSObject {
 
     override init() {
         panel = TransientPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 92, height: 44),
+            contentRect: NSRect(x: 0, y: 0, width: 244, height: 44),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -173,11 +174,12 @@ final class CaptureProgressHUDController: NSObject {
     }
 
     func show(near selection: CGRect) {
-        finishButton.title = ClipLocalization.text("Done", "完成")
+        instructionLabel.stringValue = ScrollingCaptureFeedback.instruction()
+        finishButton.title = ScrollingCaptureFeedback.doneTitle()
         finishButton.setAccessibilityLabel(
             ClipLocalization.text("Finish scrolling capture", "完成滚动截图")
         )
-        panel.setContentSize(NSSize(width: 92, height: 44))
+        panel.setContentSize(NSSize(width: 244, height: 44))
         finishButton.isEnabled = true
         installKeyMonitors()
         positionPanel(near: selection)
@@ -194,8 +196,11 @@ final class CaptureProgressHUDController: NSObject {
     }
 
     func showProcessing() {
+        instructionLabel.stringValue = ClipLocalization.text(
+            "Creating long image",
+            "正在生成长图"
+        )
         finishButton.title = ClipLocalization.text("Finishing…", "正在完成…")
-        panel.setContentSize(NSSize(width: 124, height: 44))
         finishButton.isEnabled = false
     }
 
@@ -232,8 +237,15 @@ final class CaptureProgressHUDController: NSObject {
         effect.layer?.masksToBounds = true
         effect.translatesAutoresizingMaskIntoConstraints = false
 
+        instructionLabel.translatesAutoresizingMaskIntoConstraints = false
+        instructionLabel.stringValue = ScrollingCaptureFeedback.instruction()
+        instructionLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        instructionLabel.textColor = .secondaryLabelColor
+        instructionLabel.lineBreakMode = .byTruncatingTail
+        instructionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
         finishButton.translatesAutoresizingMaskIntoConstraints = false
-        finishButton.title = ClipLocalization.text("Done", "完成")
+        finishButton.title = ScrollingCaptureFeedback.doneTitle()
         finishButton.bezelStyle = .recessed
         finishButton.font = .systemFont(ofSize: 13, weight: .semibold)
         finishButton.target = self
@@ -244,6 +256,7 @@ final class CaptureProgressHUDController: NSObject {
 
         guard let contentView = panel.contentView else { return }
         contentView.addSubview(effect)
+        effect.addSubview(instructionLabel)
         effect.addSubview(finishButton)
 
         NSLayoutConstraint.activate([
@@ -252,10 +265,14 @@ final class CaptureProgressHUDController: NSObject {
             effect.topAnchor.constraint(equalTo: contentView.topAnchor),
             effect.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-            finishButton.leadingAnchor.constraint(equalTo: effect.leadingAnchor, constant: 6),
+            instructionLabel.leadingAnchor.constraint(equalTo: effect.leadingAnchor, constant: 14),
+            instructionLabel.centerYAnchor.constraint(equalTo: effect.centerYAnchor),
+
+            finishButton.leadingAnchor.constraint(equalTo: instructionLabel.trailingAnchor, constant: 12),
             finishButton.trailingAnchor.constraint(equalTo: effect.trailingAnchor, constant: -6),
             finishButton.topAnchor.constraint(equalTo: effect.topAnchor, constant: 6),
-            finishButton.bottomAnchor.constraint(equalTo: effect.bottomAnchor, constant: -6)
+            finishButton.bottomAnchor.constraint(equalTo: effect.bottomAnchor, constant: -6),
+            finishButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 62)
         ])
     }
 
@@ -269,11 +286,13 @@ final class CaptureProgressHUDController: NSObject {
             max(selection.maxX - panel.frame.width, visibleFrame.minX + 8),
             visibleFrame.maxX - panel.frame.width - 8
         )
-        let above = selection.maxY + 8
+        // The control sits at the lower-right of the frame, like the system
+        // screenshot thumbnail, and moves above only when there is no room.
         let below = selection.minY - panel.frame.height - 8
-        let y = above + panel.frame.height <= visibleFrame.maxY
-            ? above
-            : max(below, visibleFrame.minY + 8)
+        let above = selection.maxY + 8
+        let y = below >= visibleFrame.minY + 8
+            ? below
+            : min(above, visibleFrame.maxY - panel.frame.height - 8)
         panel.setFrameOrigin(NSPoint(
             x: x,
             y: y
@@ -283,14 +302,32 @@ final class CaptureProgressHUDController: NSObject {
     private func installKeyMonitors() {
         removeKeyMonitors()
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard event.keyCode == 53 else { return event }
-            self?.onCancel?()
-            return nil
+            switch event.keyCode {
+            case 53:
+                self?.onCancel?()
+                return nil
+            case 36, 76:
+                self?.finishIfEnabled()
+                return nil
+            default:
+                return event
+            }
         }
         globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard event.keyCode == 53 else { return }
-            Task { @MainActor in self?.onCancel?() }
+            switch event.keyCode {
+            case 53:
+                Task { @MainActor in self?.onCancel?() }
+            case 36, 76:
+                Task { @MainActor in self?.finishIfEnabled() }
+            default:
+                break
+            }
         }
+    }
+
+    private func finishIfEnabled() {
+        guard finishButton.isEnabled else { return }
+        onFinish?()
     }
 
     private func removeKeyMonitors() {

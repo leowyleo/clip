@@ -20,7 +20,9 @@ Completion is a user-visible result, not a successful build alone.
 
 - Settings persists Minimal and Advanced; Advanced applies the same editing tools to both region and scrolling captures.
 - After selection, the captured pixels remain exactly over the selected region and the toolbar prefers the space directly below it.
-- The selected region remains bright while every unselected display area stays dimmed; no border remains after the initial drag completes.
+- The selected region remains bright while every unselected display area stays dimmed; the first drag's mouse-up immediately starts capture and opens the thin editor frame—no second confirmation action is required on the selection overlay.
+- In the advanced editor, dragging while no annotation tool is active creates a second crop selection with a high-contrast accent-color border and corner handles; finishing outputs only that crop.
+- Double-clicking the neutral editor canvas follows the same completion path as the checkmark button and produces the normal copy-success feedback.
 - No annotation tool is active when the editor opens; mosaic changes pixels only after its button is pressed.
 - The text tool is represented by a `T`, and the completion action is represented by a checkmark.
 - Dragging the mosaic, rectangle, or ellipse tool stays inside the selected region and does not flash or move the backdrop.

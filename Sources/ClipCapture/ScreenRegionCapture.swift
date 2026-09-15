@@ -37,7 +37,9 @@ public struct ScreenRegionCaptureService: Sendable {
             throw ClipError.screenRecordingPermissionDenied
         }
 
-        let quartzRect = coordinateConverter.quartzRect(fromAppKit: region.rect)
+        let quartzRect = ScreenCaptureGeometry.alignedToPointGrid(
+            coordinateConverter.quartzRect(fromAppKit: region.rect)
+        )
         do {
             return try await capturer.capture(quartzRect: quartzRect)
         } catch let error as ClipError {
@@ -202,7 +204,7 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
     public init() {}
 
     public func capture(quartzRect: CGRect) async throws -> CGImage {
-        let quartzRect = quartzRect.standardized
+        let quartzRect = ScreenCaptureGeometry.alignedToPointGrid(quartzRect)
         let content = try await SCShareableContent.current
         let displaysByID = Dictionary(uniqueKeysWithValues: content.displays.map { ($0.displayID, $0) })
         let ownProcessID = getpid()
@@ -231,6 +233,22 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             throw ClipError.outputTooLarge
         }
 
+        // The common single-display path is already returned by
+        // ScreenCaptureKit at the requested native pixel size. Returning it
+        // directly avoids a second bitmap draw and its interpolation filter.
+        if plan.slices.count == 1,
+           let slice = plan.slices.first,
+           let display = displaysByID[slice.displayID] {
+            let image = try await Self.captureSlice(
+                slice,
+                display: display,
+                excluding: ownWindows
+            )
+            if image.width == plan.pixelWidth, image.height == plan.pixelHeight {
+                return image
+            }
+        }
+
         guard let context = Self.makeContext(width: plan.pixelWidth, height: plan.pixelHeight) else {
             throw ClipError.outputTooLarge
         }
@@ -239,23 +257,10 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             guard let display = displaysByID[slice.displayID] else {
                 throw ClipError.captureFailed
             }
-            let configuration = SCStreamConfiguration()
-            configuration.sourceRect = slice.sourceRect
-            configuration.width = Int(ceil(slice.destinationRect.width))
-            configuration.height = Int(ceil(slice.destinationRect.height))
-            configuration.scalesToFit = true
-            if #available(macOS 14.0, *) {
-                configuration.preservesAspectRatio = true
-            }
-            configuration.showsCursor = false
-            configuration.capturesAudio = false
-
-            // Excluding Clip's own progress and status windows keeps the UI from
-            // leaking into normal or scrolling captures.
-            let filter = SCContentFilter(display: display, excludingWindows: ownWindows)
-            let image = try await Self.captureImage(
-                filter: filter,
-                configuration: configuration
+            let image = try await Self.captureSlice(
+                slice,
+                display: display,
+                excluding: ownWindows
             )
             Self.draw(image, in: slice.destinationRect, canvasHeight: plan.pixelHeight, context: context)
         }
@@ -264,6 +269,28 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             throw ClipError.captureFailed
         }
         return result
+    }
+
+    private static func captureSlice(
+        _ slice: DisplayCaptureSlice,
+        display: SCDisplay,
+        excluding ownWindows: [SCWindow]
+    ) async throws -> CGImage {
+        let configuration = SCStreamConfiguration()
+        configuration.sourceRect = slice.sourceRect
+        configuration.width = Int(ceil(slice.destinationRect.width))
+        configuration.height = Int(ceil(slice.destinationRect.height))
+        configuration.scalesToFit = true
+        if #available(macOS 14.0, *) {
+            configuration.preservesAspectRatio = true
+        }
+        configuration.showsCursor = false
+        configuration.capturesAudio = false
+
+        // Excluding every Clip-owned overlay keeps selection chrome and
+        // annotations out of the source pixels captured at final confirmation.
+        let filter = SCContentFilter(display: display, excludingWindows: ownWindows)
+        return try await captureImage(filter: filter, configuration: configuration)
     }
 
     private static func captureImage(
@@ -307,7 +334,10 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
             width: topLeftRect.width,
             height: topLeftRect.height
         )
-        context.interpolationQuality = .high
+        // Every slice has already been produced at its destination pixel size.
+        // A nearest-pixel composite preserves one-pixel window dividers and text.
+        context.interpolationQuality = .none
+        context.setShouldAntialias(false)
         context.draw(image, in: drawingRect)
     }
 }

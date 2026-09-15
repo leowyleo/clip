@@ -15,12 +15,16 @@ The app is local-only and app-agnostic. It does not upload captures or use per-a
 
 > Select. Release. Paste. Clip stays out of the way until you need it.
 
+The capture experience follows the system screenshot look with one difference: instead of a floating thumbnail, the image is on your clipboard the moment the capture completes.
+
+Drag a rectangle; the rest of the screen dims and a live size badge follows the pointer. Releasing captures immediately. Esc cancels.
+
 The capture experience has two modes:
 
-- Minimal keeps the original select → copy behavior.
-- Advanced opens the completed region or scrolling image in place, keeps the surrounding screen dim without retaining a border, and adds opt-in mosaic, a focused `T` text tool, local OCR, rectangle/ellipse marks, plain and arrowed lines, and a one-click download action below the selection. A scrolling image stays at the selected width and can be browsed vertically without shrinking the long image.
+- Minimal captures straight to the clipboard, nothing else in the way.
+- Advanced opens the completed region or scrolling image in place with the annotation toolbar: opt-in mosaic, a focused `T` text tool, local OCR, rectangle/ellipse marks, plain and arrowed lines, and a one-click download action. The region supports a second pass of drag editing right there — dragging the frame crops it, and dragging it outward re-captures the extra screen area. A scrolling image stays at the selected width and can be browsed vertically without shrinking the long image.
 
-Minimal scrolling capture remains select → user scrolls → Done → copy. Advanced scrolling capture adds the same annotation step after the long image is composed.
+During a scrolling capture, finish from the **Done** button at the lower-right of the frame or press Return.
 
 The interface uses English by default. Open **Settings → Language** to switch to Simplified Chinese; the menu, capture controls, editor, permission guidance, and errors change together.
 

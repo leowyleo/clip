@@ -49,6 +49,25 @@ import Testing
     #expect(await capturer.receivedRects == [CGRect(x: -200, y: 170, width: 120, height: 80)])
 }
 
+@Test func serviceAlignsFractionalSelectionEdgesBeforeCapturing() async throws {
+    let capturer = FakeCapturer(result: .success(makeTestImage()))
+    let service = ScreenRegionCaptureService(
+        permission: FakePermission(isAuthorized: true),
+        capturer: capturer,
+        coordinateConverter: ScreenCoordinateConverter(mainDisplayHeight: 900)
+    )
+
+    _ = try await service.capture(
+        region: CaptureRegion(
+            rect: CGRect(x: -200.2, y: 649.2, width: 120.6, height: 80.6)
+        )
+    )
+
+    #expect(await capturer.receivedRects == [
+        CGRect(x: -200, y: 170, width: 120, height: 81)
+    ])
+}
+
 @Test func servicePreservesKnownCaptureFailure() async {
     let capturer = FakeCapturer(result: .failure(ClipError.protectedContent))
     let service = ScreenRegionCaptureService(

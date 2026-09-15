@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import ImageIO
 import Testing
 @testable import ClipCapture
 
@@ -66,9 +67,40 @@ import Testing
 @Test func encodesCGImageDirectlyAsPNG() throws {
     let data = try PNGImageEncoder.encode(makeTestImage(width: 11, height: 7))
     let representation = try #require(NSBitmapImageRep(data: data))
+    let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
+    let properties = try #require(
+        CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+    )
 
     #expect(representation.pixelsWide == 11)
     #expect(representation.pixelsHigh == 7)
+    #expect(properties[kCGImagePropertyDPIWidth] as? Double == 72)
+    #expect(properties[kCGImagePropertyDPIHeight] as? Double == 72)
+}
+
+@Test func encodesRetinaPNGWithoutChangingItsPixels() throws {
+    let data = try PNGImageEncoder.encode(
+        makeTestImage(width: 1_300, height: 800),
+        pixelsPerPoint: 2
+    )
+    let representation = try #require(NSBitmapImageRep(data: data))
+    let decodedImage = try #require(NSImage(data: data))
+    let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
+    let properties = try #require(
+        CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+    )
+
+    #expect(representation.pixelsWide == 1_300)
+    #expect(representation.pixelsHigh == 800)
+    #expect(decodedImage.size == NSSize(width: 650, height: 400))
+    #expect(properties[kCGImagePropertyDPIWidth] as? Double == 144)
+    #expect(properties[kCGImagePropertyDPIHeight] as? Double == 144)
+}
+
+@Test func derivesIntegralRetinaScaleFromCapturePixelsAndSelectionPoints() {
+    #expect(CaptureImageResolution.pixelsPerPoint(pixelWidth: 1_300, pointWidth: 650) == 2)
+    #expect(CaptureImageResolution.pixelsPerPoint(pixelWidth: 1_301, pointWidth: 650.3) == 2)
+    #expect(CaptureImageResolution.pixelsPerPoint(pixelWidth: 650, pointWidth: 650) == 1)
 }
 
 @MainActor

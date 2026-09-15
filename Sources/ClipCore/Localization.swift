@@ -52,3 +52,31 @@ public enum ClipLocalization {
         }
     }
 }
+
+public enum ScrollingCaptureFeedback {
+    public static func noMovementMessage(
+        language: ClipLanguage = ClipLanguagePreferences.language
+    ) -> String {
+        ClipLocalization.text(
+            "The selected area did not scroll. Place the pointer inside it, scroll the content, then click Done.",
+            "所选区域没有发生滚动。请将鼠标移入选区，滚动内容后再点“完成”。",
+            language: language
+        )
+    }
+
+    public static func instruction(
+        language: ClipLanguage = ClipLanguagePreferences.language
+    ) -> String {
+        ClipLocalization.text(
+            "Scroll the selected area",
+            "滚动选区内容",
+            language: language
+        )
+    }
+
+    public static func doneTitle(
+        language: ClipLanguage = ClipLanguagePreferences.language
+    ) -> String {
+        ClipLocalization.text("Done", "完成", language: language)
+    }
+}

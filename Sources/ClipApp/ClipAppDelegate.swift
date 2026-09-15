@@ -135,6 +135,9 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
                 editor.present(
                     image: image,
                     over: region,
+                    allowsExpansion: false,
+                    recapture: nil,
+                    selectionOverlayController: nil,
                     onComplete: { editedImage in
                         continuation.resume(returning: .image(editedImage))
                     },
@@ -145,7 +148,38 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
                         continuation.resume(throwing: CancellationError())
                     }
                 )
+                // Scrolling capture has no secondary region adjustment.
                 dismissSelection?()
+            }
+        } onCancel: {
+            Task { @MainActor in
+                editor.cancel()
+            }
+        }
+    }
+
+    func editLiveCapture(
+        over region: CGRect,
+        capture: @escaping (CGRect) async throws -> CGImage
+    ) async throws -> AnnotationEditorResult {
+        let editor = annotationEditor
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await withCheckedThrowingContinuation { continuation in
+                editor.presentLive(
+                    over: region,
+                    capture: capture,
+                    selectionOverlayController: selectionOverlay,
+                    onComplete: { editedImage in
+                        continuation.resume(returning: .image(editedImage))
+                    },
+                    onTextCopied: {
+                        continuation.resume(returning: .ocrTextCopied)
+                    },
+                    onCancel: {
+                        continuation.resume(throwing: CancellationError())
+                    }
+                )
             }
         } onCancel: {
             Task { @MainActor in
@@ -318,6 +352,7 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
 
         pendingMode = mode
         selectionOverlay.present(
+            keepsDimWhilePassive: mode == .region,
             onSelection: { [weak self] rect, activatePassiveFrame, dismiss in
                 self?.completeSelection(
                     rect,

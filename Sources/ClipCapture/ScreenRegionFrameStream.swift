@@ -58,7 +58,9 @@ public struct ScreenRegionFrameStreamService: Sendable {
             throw ClipError.screenRecordingPermissionDenied
         }
 
-        let quartzRect = coordinateConverter.quartzRect(fromAppKit: region.rect)
+        let quartzRect = ScreenCaptureGeometry.alignedToPointGrid(
+            coordinateConverter.quartzRect(fromAppKit: region.rect)
+        )
         do {
             return try await streamer.stream(
                 quartzRect: quartzRect,
@@ -82,7 +84,7 @@ public struct ScreenCaptureKitRegionFrameStreamer: ScreenRegionFrameStreaming {
         quartzRect: CGRect,
         framesPerSecond: Int
     ) async throws -> ScreenRegionFrameStream {
-        let quartzRect = quartzRect.standardized
+        let quartzRect = ScreenCaptureGeometry.alignedToPointGrid(quartzRect)
         let content = try await SCShareableContent.current
         guard let display = content.displays.first(where: {
             Self.contains(quartzRect, in: $0.frame)

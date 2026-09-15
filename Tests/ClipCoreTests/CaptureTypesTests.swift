@@ -28,6 +28,30 @@ import Testing
     #expect(messages.allSatisfy { !$0.contains("置信度") })
 }
 
+@Test func noScrollFeedbackExplainsHowToRecoverInBothLanguages() {
+    #expect(
+        ScrollingCaptureFeedback.noMovementMessage(language: .english)
+            == "The selected area did not scroll. Place the pointer inside it, scroll the content, then click Done."
+    )
+    #expect(
+        ScrollingCaptureFeedback.noMovementMessage(language: .simplifiedChinese)
+            == "所选区域没有发生滚动。请将鼠标移入选区，滚动内容后再点“完成”。"
+    )
+}
+
+@Test func scrollingPromptSeparatesTheNextStepFromTheFinishAction() {
+    #expect(
+        ScrollingCaptureFeedback.instruction(language: .english)
+            == "Scroll the selected area"
+    )
+    #expect(
+        ScrollingCaptureFeedback.instruction(language: .simplifiedChinese)
+            == "滚动选区内容"
+    )
+    #expect(ScrollingCaptureFeedback.doneTitle(language: .english) == "Done")
+    #expect(ScrollingCaptureFeedback.doneTitle(language: .simplifiedChinese) == "完成")
+}
+
 @Test func languagePreferenceDefaultsToEnglishAndPersistsChinese() {
     let suiteName = "ClipCoreLanguageTests.\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!

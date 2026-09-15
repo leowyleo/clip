@@ -3,9 +3,11 @@ set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 configuration=${CONFIGURATION:-release}
+app_store=${APP_STORE:-0}
 local_signing_identity="Clip Local Development"
 signing_identity=${SIGNING_IDENTITY:-}
 bundle_dir="$project_dir/dist/Clip.app"
+entitlements_file="$project_dir/Resources/ClipAppStore.entitlements"
 staging_dir=
 universal_executable=
 
@@ -30,6 +32,19 @@ if [ -z "$signing_identity" ]; then
     echo "Run scripts/create-local-signing-identity.sh once, or explicitly set SIGNING_IDENTITY." >&2
     exit 2
   fi
+fi
+
+case "$app_store" in
+  0|1) ;;
+  *)
+    echo "APP_STORE must be 0 or 1" >&2
+    exit 2
+    ;;
+esac
+
+if [ "$app_store" = "1" ] && [ ! -f "$entitlements_file" ]; then
+  echo "Missing App Store entitlements: $entitlements_file" >&2
+  exit 2
 fi
 
 cd "$project_dir"
@@ -57,26 +72,52 @@ mkdir -p "$contents_dir/MacOS" "$contents_dir/Resources"
 cp "$executable_path" "$contents_dir/MacOS/Clip"
 cp "$project_dir/Resources/Info.plist" "$contents_dir/Info.plist"
 cp "$project_dir/Resources/AppIcon.icns" "$contents_dir/Resources/AppIcon.icns"
+cp "$project_dir/Resources/PrivacyInfo.xcprivacy" "$contents_dir/Resources/PrivacyInfo.xcprivacy"
 cp -R "$project_dir/Resources/en.lproj" "$contents_dir/Resources/en.lproj"
 cp -R "$project_dir/Resources/zh-Hans.lproj" "$contents_dir/Resources/zh-Hans.lproj"
 
 if [ "$signing_identity" = "-" ]; then
-  codesign --force --deep --sign - "$staged_bundle"
+  if [ "$app_store" = "1" ]; then
+    codesign --force --deep --sign - --entitlements "$entitlements_file" "$staged_bundle"
+  else
+    codesign --force --deep --sign - "$staged_bundle"
+  fi
 elif [ "$signing_identity" = "$local_signing_identity" ]; then
-  codesign \
-    --force \
-    --options runtime \
-    --timestamp=none \
-    --sign "$signing_identity" \
-    "$staged_bundle"
+  if [ "$app_store" = "1" ]; then
+    codesign \
+      --force \
+      --options runtime \
+      --timestamp=none \
+      --entitlements "$entitlements_file" \
+      --sign "$signing_identity" \
+      "$staged_bundle"
+  else
+    codesign \
+      --force \
+      --options runtime \
+      --timestamp=none \
+      --sign "$signing_identity" \
+      "$staged_bundle"
+  fi
 else
-  codesign \
-    --force \
-    --deep \
-    --options runtime \
-    --timestamp \
-    --sign "$signing_identity" \
-    "$staged_bundle"
+  if [ "$app_store" = "1" ]; then
+    codesign \
+      --force \
+      --deep \
+      --options runtime \
+      --timestamp \
+      --entitlements "$entitlements_file" \
+      --sign "$signing_identity" \
+      "$staged_bundle"
+  else
+    codesign \
+      --force \
+      --deep \
+      --options runtime \
+      --timestamp \
+      --sign "$signing_identity" \
+      "$staged_bundle"
+  fi
 fi
 
 codesign --verify --deep --strict --verbose=2 "$staged_bundle"
