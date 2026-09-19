@@ -72,7 +72,6 @@ private final class ShortcutRecorderButton: NSButton {
 final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private let permissionGuide: PermissionGuiding
     private let screenStatus = NSTextField(labelWithString: "")
-    private var languageControl: NSSegmentedControl?
     private var experienceControl: NSSegmentedControl?
     private var regionRecorder: ShortcutRecorderButton?
     private var scrollingRecorder: ShortcutRecorderButton?
@@ -81,7 +80,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     init(permissionGuide: PermissionGuiding) {
         self.permissionGuide = permissionGuide
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 430),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 350),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -124,7 +123,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private func configureContent() {
         guard let contentView = window?.contentView else { return }
         contentView.subviews.forEach { $0.removeFromSuperview() }
-        languageControl = nil
         experienceControl = nil
         regionRecorder = nil
         scrollingRecorder = nil
@@ -137,9 +135,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             labelWithString: ClipLocalization.text("Frame it. Paste it.", "框住，就能粘贴。")
         )
         subtitle.textColor = .secondaryLabelColor
-
-        let languageHeader = sectionLabel(ClipLocalization.text("LANGUAGE", "语言"))
-        let languageRow = appLanguageRow()
 
         let experienceHeader = sectionLabel(ClipLocalization.text("CAPTURE EXPERIENCE", "截图体验"))
         let experienceRow = captureExperienceRow()
@@ -171,8 +166,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         let stack = NSStackView(views: [
             title,
             subtitle,
-            languageHeader,
-            languageRow,
             experienceHeader,
             experienceRow,
             experienceHint,
@@ -187,8 +180,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         stack.spacing = 8
         stack.setCustomSpacing(2, after: title)
         stack.setCustomSpacing(18, after: subtitle)
-        stack.setCustomSpacing(12, after: languageHeader)
-        stack.setCustomSpacing(18, after: languageRow)
         stack.setCustomSpacing(12, after: experienceHeader)
         stack.setCustomSpacing(4, after: experienceRow)
         stack.setCustomSpacing(18, after: experienceHint)
@@ -203,7 +194,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -28),
             stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
             stack.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -24),
-            languageRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             experienceRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             experienceHint.widthAnchor.constraint(equalTo: stack.widthAnchor),
             regionRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
@@ -249,33 +239,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
         let spacer = NSView()
         let row = NSStackView(views: [name, spacer, recorder])
-        row.orientation = .horizontal
-        row.distribution = .fill
-        row.alignment = .centerY
-        row.heightAnchor.constraint(equalToConstant: 36).isActive = true
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        return row
-    }
-
-    private func appLanguageRow() -> NSView {
-        let name = NSTextField(
-            labelWithString: ClipLocalization.text("Interface", "界面语言")
-        )
-        let spacer = NSView()
-        let control = NSSegmentedControl(
-            labels: ["English", "中文"],
-            trackingMode: .selectOne,
-            target: self,
-            action: #selector(languageChanged(_:))
-        )
-        control.controlSize = .large
-        control.translatesAutoresizingMaskIntoConstraints = false
-        control.widthAnchor.constraint(equalToConstant: 180).isActive = true
-        control.heightAnchor.constraint(equalToConstant: 32).isActive = true
-        control.setAccessibilityLabel(ClipLocalization.text("Interface language", "界面语言"))
-        languageControl = control
-
-        let row = NSStackView(views: [name, spacer, control])
         row.orientation = .horizontal
         row.distribution = .fill
         row.alignment = .centerY
@@ -344,9 +307,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func refreshPermissionStatus() {
-        languageControl?.selectedSegment = ClipLanguagePreferences.language == .simplifiedChinese
-            ? 1
-            : 0
         experienceControl?.selectedSegment = CaptureExperiencePreferences.mode == .advanced
             ? 1
             : 0
@@ -355,13 +315,6 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         screenStatus.stringValue = permissionGuide.screenRecordingStatus == .granted
             ? ClipLocalization.text("Allowed", "已允许")
             : ClipLocalization.text("Not Allowed", "未允许")
-    }
-
-    @objc private func languageChanged(_ sender: NSSegmentedControl) {
-        ClipLanguagePreferences.language = sender.selectedSegment == 1
-            ? .simplifiedChinese
-            : .english
-        configureContent()
     }
 
     @objc private func captureExperienceChanged(_ sender: NSSegmentedControl) {

@@ -32,7 +32,6 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var hotKeyManager: GlobalHotKeyManager?
     private var hotKeyChangeObserver: NSObjectProtocol?
-    private var languageChangeObserver: NSObjectProtocol?
     private var pendingMode: CaptureMode?
 
     override init() {
@@ -55,15 +54,6 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
                 self?.reloadHotKeys()
             }
         }
-        languageChangeObserver = NotificationCenter.default.addObserver(
-            forName: .clipLanguageDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.reloadLocalizedInterface()
-            }
-        }
         performStartupActionIfPresent()
     }
 
@@ -73,9 +63,6 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
         annotationEditor.cancel()
         if let hotKeyChangeObserver {
             NotificationCenter.default.removeObserver(hotKeyChangeObserver)
-        }
-        if let languageChangeObserver {
-            NotificationCenter.default.removeObserver(languageChangeObserver)
         }
     }
 
@@ -303,13 +290,6 @@ final class ClipAppDelegate: NSObject, NSApplicationDelegate {
     private func reloadHotKeys() {
         hotKeyManager?.unregisterAll()
         configureHotKeys()
-        statusItem?.menu = makeMenu()
-    }
-
-    private func reloadLocalizedInterface() {
-        statusItem?.button?.setAccessibilityLabel(
-            ClipLocalization.text("Clip capture menu", "Clip 截图菜单")
-        )
         statusItem?.menu = makeMenu()
     }
 

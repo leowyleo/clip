@@ -26,7 +26,7 @@ The capture experience has two modes:
 
 During a scrolling capture, finish from the **Done** button at the lower-right of the frame or press Return.
 
-The interface uses English by default. Open **Settings → Language** to switch to Simplified Chinese; the menu, capture controls, editor, permission guidance, and errors change together.
+The interface follows the first macOS preferred language: Simplified Chinese uses the Simplified Chinese interface; English, Traditional Chinese, Japanese, Korean, and all other languages use English. Change the macOS language preference and relaunch Clip to apply it.
 
 ## See Clip in action
 

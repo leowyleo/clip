@@ -8,7 +8,7 @@ Clip is a local, clipboard-first screenshot utility for macOS 13 and newer.
 - App-agnostic scrolling capture controlled by the user.
 - Minimal and Advanced capture experiences.
 - Local annotation tools and Vision OCR in Advanced mode.
-- English interface by default, with Simplified Chinese available in Settings.
+- Interface follows the first macOS preferred language: Simplified Chinese for Simplified Chinese, English for English and all other unsupported languages.
 - Universal support for Apple Silicon and Intel Macs.
 
 ## Install

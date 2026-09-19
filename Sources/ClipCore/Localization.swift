@@ -5,36 +5,28 @@ public enum ClipLanguage: String, CaseIterable, Sendable {
     case simplifiedChinese
 }
 
-public extension Notification.Name {
-    static let clipLanguageDidChange = Notification.Name("cc.clip.mac.languageChanged")
-}
-
 public enum ClipLanguagePreferences {
-    public static let languageKey = "cc.clip.mac.language"
-
+    /// Resolves Clip's UI from the first macOS preferred language only.
+    /// Simplified Chinese is the only non-English UI shipped for now.
     public static var language: ClipLanguage {
-        get { language(in: .standard) }
-        set {
-            let previous = language(in: .standard)
-            setLanguage(newValue, in: .standard)
-            guard previous != newValue else { return }
-            NotificationCenter.default.post(name: .clipLanguageDidChange, object: nil)
-        }
+        language(for: Locale.preferredLanguages)
     }
 
-    public static func language(in defaults: UserDefaults) -> ClipLanguage {
-        guard let stored = defaults.string(forKey: languageKey),
-              let language = ClipLanguage(rawValue: stored) else {
+    public static func language(for preferredLanguages: [String]) -> ClipLanguage {
+        guard let preferred = preferredLanguages.first else {
             return .english
         }
-        return language
-    }
 
-    public static func setLanguage(
-        _ language: ClipLanguage,
-        in defaults: UserDefaults
-    ) {
-        defaults.set(language.rawValue, forKey: languageKey)
+        let identifier = preferred
+            .replacingOccurrences(of: "_", with: "-")
+            .lowercased()
+        let isSimplifiedChinese = identifier == "zh-hans"
+            || identifier.hasPrefix("zh-hans-")
+            || identifier == "zh-cn"
+            || identifier.hasPrefix("zh-cn-")
+            || identifier == "zh-sg"
+            || identifier.hasPrefix("zh-sg-")
+        return isSimplifiedChinese ? .simplifiedChinese : .english
     }
 }
 

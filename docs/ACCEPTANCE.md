@@ -4,9 +4,9 @@ Completion is a user-visible result, not a successful build alone.
 
 ## Language
 
-- A fresh installation starts in English regardless of the macOS system language.
-- Settings offers English and Simplified Chinese without restarting Clip.
-- Changing the language updates the menu bar menu immediately and all subsequently presented capture controls, editor labels, permission guidance, success feedback, and errors use the selected language.
+- Clip follows the first macOS preferred language: Simplified Chinese uses the Simplified Chinese UI; English uses the English UI.
+- Traditional Chinese, Japanese, Korean, and every other unsupported first language fall back to English.
+- Clip has no in-app language switch; changing the macOS preferred language takes effect the next time Clip launches.
 
 ## Region capture
 

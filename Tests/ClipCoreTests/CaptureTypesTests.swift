@@ -52,22 +52,25 @@ import Testing
     #expect(ScrollingCaptureFeedback.doneTitle(language: .simplifiedChinese) == "完成")
 }
 
-@Test func languagePreferenceDefaultsToEnglishAndPersistsChinese() {
-    let suiteName = "ClipCoreLanguageTests.\(UUID().uuidString)"
-    let defaults = UserDefaults(suiteName: suiteName)!
-    defer { defaults.removePersistentDomain(forName: suiteName) }
-
-    #expect(ClipLanguagePreferences.language(in: defaults) == .english)
+@Test func languageFollowsTheFirstSystemPreference() {
     #expect(
-        ClipLocalization.text("Copied", "已复制", language: .english) == "Copied"
+        ClipLanguagePreferences.language(for: ["zh-Hans-CN", "en-US"])
+            == .simplifiedChinese
     )
-
-    ClipLanguagePreferences.setLanguage(.simplifiedChinese, in: defaults)
-    #expect(ClipLanguagePreferences.language(in: defaults) == .simplifiedChinese)
     #expect(
-        ClipLocalization.text("Copied", "已复制", language: .simplifiedChinese) == "已复制"
+        ClipLanguagePreferences.language(for: ["en-US", "zh-Hans-CN"])
+            == .english
     )
-
-    defaults.set("future-language", forKey: ClipLanguagePreferences.languageKey)
-    #expect(ClipLanguagePreferences.language(in: defaults) == .english)
+    #expect(
+        ClipLanguagePreferences.language(for: ["zh-CN", "en-US"])
+            == .simplifiedChinese
+    )
+    #expect(
+        ClipLanguagePreferences.language(for: ["zh-Hant-TW", "zh-Hans-CN"])
+            == .english
+    )
+    #expect(ClipLanguagePreferences.language(for: ["ja-JP"]) == .english)
+    #expect(ClipLanguagePreferences.language(for: ["ko-KR"]) == .english)
+    #expect(ClipLanguagePreferences.language(for: ["fr-FR"]) == .english)
+    #expect(ClipLanguagePreferences.language(for: []) == .english)
 }
