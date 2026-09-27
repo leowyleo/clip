@@ -297,7 +297,32 @@ public struct ScreenCaptureKitRegionCapturer: ScreenRegionImageCapturing {
         filter: SCContentFilter,
         configuration: SCStreamConfiguration
     ) async throws -> CGImage {
+        if #available(macOS 26.0, *) {
+            // The macOS 26 screenshot API defaults to omitting window shadows.
+            // Set both framing options explicitly so a desktop capture matches
+            // the pixels the user sees, including shadows and window clipping.
+            let screenshotConfiguration = SCScreenshotConfiguration()
+            screenshotConfiguration.sourceRect = configuration.sourceRect
+            screenshotConfiguration.width = configuration.width
+            screenshotConfiguration.height = configuration.height
+            screenshotConfiguration.showsCursor = configuration.showsCursor
+            screenshotConfiguration.ignoreShadows = false
+            screenshotConfiguration.ignoreClipping = false
+            screenshotConfiguration.displayIntent = .local
+            screenshotConfiguration.dynamicRange = .sdr
+
+            let output = try await SCScreenshotManager.captureScreenshot(
+                contentFilter: filter,
+                configuration: screenshotConfiguration
+            )
+            guard let image = output.sdrImage else {
+                throw ClipError.captureFailed
+            }
+            return image
+        }
+
         if #available(macOS 14.0, *) {
+            configuration.ignoreShadowsDisplay = false
             return try await SCScreenshotManager.captureImage(
                 contentFilter: filter,
                 configuration: configuration
